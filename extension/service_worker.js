@@ -41,7 +41,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           target: "offscreen",
           type: "LLM_PROMPT",
           requestId,
-          prompt: message.prompt
+          prompt: message.prompt,
+          redactionConfig: message.redactionConfig
         });
       })
       .catch((err) => {

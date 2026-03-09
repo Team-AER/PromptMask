@@ -1,190 +1,304 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Gemma PII Redaction Test</title>
-    <style>
-      :root {
-        color-scheme: light;
-        font-family: "Sofia Sans", "Trebuchet MS", system-ui, sans-serif;
-      }
-      body {
-        margin: 0;
-        background: radial-gradient(circle at top left, #f5f1e8, #e7edf4 55%, #eef6f2 100%);
-        color: #1a1b1f;
-      }
-      main {
-        max-width: 880px;
-        margin: 0 auto;
-        padding: 40px 24px 64px;
-      }
-      h1 {
-        font-size: 2.4rem;
-        margin-bottom: 0.4rem;
-      }
-      p {
-        margin-top: 0;
-        color: #4b4f58;
-      }
-      .card {
-        background: white;
-        border-radius: 16px;
-        padding: 24px;
-        box-shadow: 0 18px 40px rgba(27, 37, 48, 0.08);
-      }
-      label {
-        display: block;
-        font-weight: 600;
-        margin: 16px 0 8px;
-      }
-      textarea {
-        width: 100%;
-        min-height: 120px;
-        border-radius: 12px;
-        border: 1px solid #d1d6df;
-        padding: 12px 14px;
-        font-size: 1rem;
-        resize: vertical;
-      }
-      button {
-        margin-top: 16px;
-        background: #1b3a57;
-        color: #fff;
-        border: none;
-        border-radius: 999px;
-        padding: 10px 18px;
-        font-size: 1rem;
-        cursor: pointer;
-      }
-      button:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
-      #status {
-        font-size: 0.95rem;
-        padding: 8px 12px;
-        background: #f1f4f8;
-        border-radius: 8px;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-      }
-      #output {
-        margin-top: 8px;
-        min-height: 140px;
-        background: #111723;
-        color: #e9f1ff;
-        border-color: #1f2b3d;
-      }
-      .hint {
-        font-size: 0.85rem;
-        color: #6a6f7a;
-      }
-    </style>
-  </head>
-  <body>
-    <main>
-      <h1>Gemma PII Redaction Test</h1>
-      <p>Use Gemma-3n WebGPU to replace PII with placeholders.</p>
-      <div class="card">
-        <div id="status">Initializing...</div>
-        <label for="input">Input text</label>
-        <textarea id="input">Contact Jane Doe at jane.doe@example.com or (415) 555-0199. SSN 123-45-6789. Card 4111 1111 1111 1111.</textarea>
-        <div class="hint">Model served from <code>http://localhost:8000/models</code>.</div>
-        <button id="run">Remove PII</button>
-        <label for="output">Redacted output</label>
-        <textarea id="output" readonly>Waiting for input...</textarea>
-      </div>
-    </main>
 
-    <script type="module">
-      import { FilesetResolver, LlmInference } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-genai@latest";
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gemma PII Redaction Test</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Sofia Sans", "Trebuchet MS", system-ui, sans-serif;
+    }
 
-      const MODEL_URL = "http://localhost:8000/models/gemma-3n-E2B-it-int4-Web.litertlm";
-      const WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-genai@latest/wasm";
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top left, #f5f1e8, #e7edf4 55%, #eef6f2 100%);
+      color: #1a1b1f;
+    }
 
-      const statusEl = document.getElementById("status");
-      const runButton = document.getElementById("run");
-      const inputEl = document.getElementById("input");
-      const outputEl = document.getElementById("output");
+    main {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 40px 24px 64px;
+    }
 
-      let llmInference;
+    h1 {
+      font-size: 2.4rem;
+      margin-bottom: 0.4rem;
+    }
 
-      function setStatus(text) {
-        statusEl.textContent = text;
-      }
+    p {
+      margin-top: 0;
+      color: #4b4f58;
+    }
 
-      const REDACTION_PROMPT = `You are a PII redaction system. Replace any PII in the input with the placeholders below and return only the redacted text.
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 18px 40px rgba(27, 37, 48, 0.08);
+    }
 
-- Names -> [NAME]
-- Phones -> [PHONE]
-- Emails -> [EMAIL]
-- Addresses -> [ADDRESS]
-- SSN -> [SSN]
-- API keys -> [API_KEY]
-- Bank details -> [BANK_ACCOUNT]
-- Credit cards -> [CREDIT_CARD]
-- Access tokens -> [ACCESS_TOKEN]`;
+    label {
+      display: block;
+      font-weight: 600;
+      margin: 16px 0 8px;
+    }
 
-      function buildPrompt(text) {
-        return `${REDACTION_PROMPT}\n\nINPUT:\n${text}`;
-      }
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      border-radius: 12px;
+      border: 1px solid #d1d6df;
+      padding: 12px 14px;
+      font-size: 1rem;
+      resize: vertical;
+    }
 
-      async function initModel() {
-        if (llmInference) return llmInference;
-        setStatus("Loading MediaPipe GenAI...");
+    button {
+      margin-top: 16px;
+      background: #1b3a57;
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
 
-        const filesetResolver = await FilesetResolver.forGenAiTasks(WASM_URL);
-        llmInference = await LlmInference.createFromOptions(filesetResolver, {
-          baseOptions: {
-            modelAssetPath: MODEL_URL,
-          },
-          maxTokens: 512,
-          temperature: 0.8,
-          topK: 40,
-        });
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
 
-        setStatus("Model ready.");
-        return llmInference;
-      }
+    #status {
+      font-size: 0.95rem;
+      padding: 8px 12px;
+      background: #f1f4f8;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-      async function generate(prompt) {
-        if (typeof llmInference.generateResponse === "function") {
-          return await llmInference.generateResponse(prompt);
+    #output {
+      margin-top: 8px;
+      min-height: 140px;
+      background: #111723;
+      color: #e9f1ff;
+      border-color: #1f2b3d;
+    }
+
+    .hint {
+      font-size: 0.85rem;
+      color: #6a6f7a;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <h1>Gemma PII Redaction Test</h1>
+    <p>Use Gemma-3n WebGPU to replace PII with placeholders.</p>
+    <div class="card">
+      <div id="status">Initializing...</div>
+      <label for="input">Input text</label>
+      <textarea
+        id="input">Contact Jane Doe at jane.doe@example.com or (415) 555-0199. SSN 123-45-6789. Card 4111 1111 1111 1111.</textarea>
+      <div class="hint">Model served from <code>http://localhost:8000/models</code>.</div>
+      <button id="run">Remove PII</button>
+      <label for="output">Redacted output</label>
+      <textarea id="output" readonly>Waiting for input...</textarea>
+    </div>
+  </main>
+
+  <script type="module">
+    import { FilesetResolver, LlmInference } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-genai@latest";
+
+    // Original (needs ~3GB GPU buffer): "http://localhost:8000/models/gemma-3n-E2B-it-int4-Web.litertlm"
+    const MODEL_URL = "http://localhost:8000/models/gemma3-1b-it-int4-web.task";
+    const WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-genai@latest/wasm";
+
+    const statusEl = document.getElementById("status");
+    const runButton = document.getElementById("run");
+    const inputEl = document.getElementById("input");
+    const outputEl = document.getElementById("output");
+
+    let llmInference;
+
+    function setStatus(text) {
+      statusEl.textContent = text;
+    }
+
+    const REDACTION_PROMPT = `You are a PII redaction system. Replace any PII in the input with consistently numbered placeholders and return ONLY the redacted text. Keep all non-PII text exactly as-is. Do not add or remove any other words. Do not add headings, labels, explanations, quotes, or tags.
+
+Preserve the original formatting exactly: keep all line breaks, paragraph spacing, bullet points, indentation, list structure, and whitespace. Do not collapse the text into a single line or paragraph or normalize spacing.
+
+Placeholders (use sequential numbering per category, starting at 1):
+- Names -> [NAME 1], [NAME 2], ...
+- Phones -> [PHONE 1], [PHONE 2], ...
+- Emails -> [EMAIL 1], [EMAIL 2], ...
+- Usernames / account handles -> [USERNAME 1], [USERNAME 2], ...
+- Addresses (street, building, floor, city, postal code, full mailing addresses) -> [ADDRESS 1], [ADDRESS 2], ...
+- SSN and government ID numbers (SSN, SIN, TIN/EIN, National ID) -> [SSN 1], [SSN 2], ...
+- Dates of birth -> [DATE_OF_BIRTH 1], [DATE_OF_BIRTH 2], ...
+- Insurance IDs -> [INSURANCE_ID 1], [INSURANCE_ID 2], ...
+- Medical record numbers (MRN) -> [MRN 1], [MRN 2], ...
+- IP addresses -> [IP_ADDRESS 1], [IP_ADDRESS 2], ...
+- Order/transaction IDs -> [ORDER_ID 1], [ORDER_ID 2], ...
+- Invoice IDs (e.g., INV-2026-00173) -> [INVOICE_ID 1], [INVOICE_ID 2], ...
+- Ticket, case, or reference IDs (e.g., TCK-556201, REF-12345) -> [CASE_ID 1], [CASE_ID 2], ...
+- PAN (India, e.g., ABCPK1234D) -> [PAN 1], [PAN 2], ...
+- GST / tax registration numbers (e.g., 27ABCDE1234F1Z5) -> [GST 1], [GST 2], ...
+- Device identifiers (e.g., A1B2C3D4E5F6) -> [DEVICE_ID 1], [DEVICE_ID 2], ...
+- PayPal details -> [PAYPAL 1], [PAYPAL 2], ...
+- Driver's license numbers -> [DRIVER_LICENSE 1], [DRIVER_LICENSE 2], ...
+- API keys -> [API_KEY 1], [API_KEY 2], ...
+- Bank details -> [BANK_ACCOUNT 1], [BANK_ACCOUNT 2], ...
+- Credit cards -> [CREDIT_CARD 1], [CREDIT_CARD 2], ...
+- Card expiry dates -> [CARD_EXPIRY 1], [CARD_EXPIRY 2], ...
+- Card CVV/CVC -> [CARD_CVV 1], [CARD_CVV 2], ...
+- Access tokens -> [ACCESS_TOKEN 1], [ACCESS_TOKEN 2], ...
+
+Numbering rules:
+- Assign each distinct PII value a sequential number within its category, starting at 1.
+- If the same PII value appears again later, reuse the same number.
+- Different PII values in the same category get different numbers.
+- Replace each PII span with exactly one placeholder. Do not split a single name or email into multiple placeholders.
+- Do not invent placeholders. Only replace substrings that are actual PII values present in the input.
+- Do not redact category labels or generic phrases without a concrete identifier (e.g., "bank details", "PAN", "invoice number" with no value).
+- Only redact dates that clearly indicate a date of birth (DOB, "date of birth", "born", "birthday"). Leave other dates/timestamps unchanged.
+- Treat abbreviated names or initials as distinct values unless the text is an exact match (e.g., "Neha Kulkarni" != "Neha K.").
+- Remove all digits of SSNs and government IDs. Replace the full identifier with [SSN N] (keep the label if present).
+- Redact full names (first + last) entirely with [NAME N]; do not leave surnames.
+- Redact full street addresses, mailing addresses, and business addresses entirely with a single [ADDRESS N]. This includes building names, floor/unit numbers, street names, localities, cities, states, and postal codes.
+- Redact phone numbers (including country codes) with [PHONE N].
+- Redact emails with [EMAIL N].
+- Redact dates of birth (e.g., "DOB: 1992-08-14") with [DATE_OF_BIRTH N].
+- Redact invoice numbers (e.g., INV-2026-00173) with [INVOICE_ID N].
+- Redact ticket/case/reference IDs (e.g., TCK-556201) with [CASE_ID N].
+- Redact GST/tax-registration numbers (e.g., 27ABCDE1234F1Z5) with [GST N].
+- Redact device identifiers (e.g., hardware IDs like A1B2C3D4E5F6) with [DEVICE_ID N].
+- Redact usernames/account handles (e.g., "neha.kulkarni91") with [USERNAME N].
+
+Examples:
+Input: Payroll setup for Sam — SSN: 123-45-6789 (dummy).
+Output: Payroll setup for [NAME 1] — SSN: [SSN 1] (dummy).
+Input: Tax ID 12-3456789 or SIN 123-456-789.
+Output: Tax ID [SSN 1] or SIN [SSN 2].
+Input: Hi, I'm Priya Nair. Please update my address to 14B, Lakeview Apartments, 3rd Cross, Indiranagar, Bengaluru 560038. You can reach me at +91 98765 43210 or priya.nair17@example.com. DOB: 1992-08-14.
+Output: Hi, I'm [NAME 1]. Please update my address to [ADDRESS 1]. You can reach me at [PHONE 1] or [EMAIL 1]. [DATE_OF_BIRTH 1].
+Input: Invoice INV-2026-00173 for case TCK-556201.
+Ship to: Wellness Clinic, 2nd Floor, 18 Baner Road, Pune 411045.
+Output: Invoice [INVOICE_ID 1] for case [CASE_ID 1].
+Ship to: [ADDRESS 1].
+Input: Neha Kulkarni (Neha K.) approved the request.
+Output: [NAME 1] ([NAME 2]) approved the request.
+Input: From: Neha Kulkarni neha.kulkarni+support@example.com
+To: security@kwc.example.com
+Date: 2026-01-13
+Subject: Re: Case TCK-556201 — request for redacted logs
+Output: From: [NAME 1] [EMAIL 1]
+To: [EMAIL 2]
+Date: 2026-01-13
+Subject: Re: Case [CASE_ID 1] — request for redacted logs
+Input: Account username is neha.kulkarni91. Please remove bank details if present.
+Output: Account username is [USERNAME 1]. Please remove bank details if present.
+Input: Alice emailed Bob at bob@x.com. Alice's SSN is 111-22-3333 and Bob's is 444-55-6666.
+Output: [NAME 1] emailed [NAME 2] at [EMAIL 1]. [NAME 1]'s SSN is [SSN 1] and [NAME 2]'s is [SSN 2].`;
+
+    function buildPrompt(text) {
+      return `<start_of_turn>user\n${REDACTION_PROMPT}\n\nINPUT:\n${text}\n<end_of_turn>\n<start_of_turn>model\n`;
+    }
+
+    function formatError(err) {
+      if (err instanceof GPUValidationError) return `GPUValidationError: ${err.message}`;
+      if (err?.message) return err.message;
+      if (typeof err === "string") return err;
+      try { return JSON.stringify(err); } catch { return String(err); }
+    }
+
+    async function logGpuInfo() {
+      try {
+        const adapter = await navigator.gpu.requestAdapter();
+        if (adapter) {
+          const info = adapter.info || (await adapter.requestAdapterInfo?.()) || {};
+          console.info("[GPU Info]", {
+            vendor: info.vendor,
+            architecture: info.architecture,
+            device: info.device,
+            description: info.description,
+            maxBufferSize: adapter.limits?.maxBufferSize,
+            maxStorageBufferBindingSize: adapter.limits?.maxStorageBufferBindingSize,
+          });
         }
-        if (typeof llmInference.generate === "function") {
-          return await llmInference.generate(prompt);
-        }
-        throw new Error("No compatible generate method found on LlmInference.");
+      } catch (e) {
+        console.warn("[GPU Info] Could not retrieve adapter info:", e);
       }
+    }
 
-      runButton.addEventListener("click", async () => {
-        runButton.disabled = true;
-        outputEl.value = "Running...";
-        try {
-          await initModel();
-          const inputText = inputEl.value.trim();
-          const response = await generate(buildPrompt(inputText));
-          const redacted = typeof response === "string" ? response : JSON.stringify(response, null, 2);
-          outputEl.value = redacted;
-          inputEl.value = redacted;
-        } catch (err) {
-          outputEl.value = `Error: ${err.message ?? err}`;
-          setStatus("Error (see output)");
-        } finally {
-          runButton.disabled = false;
-        }
+    async function initModel() {
+      if (llmInference) return llmInference;
+      setStatus("Loading MediaPipe GenAI...");
+
+      const filesetResolver = await FilesetResolver.forGenAiTasks(WASM_URL);
+      llmInference = await LlmInference.createFromOptions(filesetResolver, {
+        baseOptions: {
+          modelAssetPath: MODEL_URL,
+        },
+        maxTokens: 4096,
+        temperature: 0,
+        topK: 1,
+        randomSeed: 1,
       });
 
-      if (!navigator.gpu) {
-        setStatus("WebGPU unavailable in this browser.");
-      } else {
-        initModel().catch((err) => {
-          outputEl.value = `Error: ${err.message ?? err}`;
-          setStatus("Failed to initialize");
-        });
+      setStatus("Model ready.");
+      return llmInference;
+    }
+
+    async function generate(prompt) {
+      if (typeof llmInference.generateResponse === "function") {
+        return await llmInference.generateResponse(prompt);
       }
-    </script>
-  </body>
+      if (typeof llmInference.generate === "function") {
+        return await llmInference.generate(prompt);
+      }
+      throw new Error("No compatible generate method found on LlmInference.");
+    }
+
+    runButton.addEventListener("click", async () => {
+      runButton.disabled = true;
+      outputEl.value = "Running...";
+      try {
+        await initModel();
+        const inputText = inputEl.value;
+        if (!inputText || !inputText.trim()) {
+          setStatus("Please provide input text.");
+          return;
+        }
+        const response = await generate(buildPrompt(inputText));
+        const redacted = typeof response === "string" ? response : JSON.stringify(response, null, 2);
+        outputEl.value = redacted;
+        inputEl.value = redacted;
+      } catch (err) {
+        outputEl.value = `Error: ${formatError(err)}`;
+        setStatus("Error (see output)");
+      } finally {
+        runButton.disabled = false;
+      }
+    });
+
+    if (!navigator.gpu) {
+      setStatus("WebGPU unavailable in this browser.");
+    } else {
+      logGpuInfo();
+      initModel().catch((err) => {
+        outputEl.value = `Error: ${formatError(err)}`;
+        setStatus("Failed to initialize");
+      });
+    }
+  </script>
+</body>
+
 </html>

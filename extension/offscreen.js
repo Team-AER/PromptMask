@@ -1,32 +1,53 @@
 import { FilesetResolver, LlmInference } from "./lib/genai_bundle.mjs";
 import { buildPrompt, normalizeOutput } from "./offscreen_utils.mjs";
 
-const MODEL_URL = "http://localhost:8000/models/gemma-3n-E2B-it-int4-Web.litertlm";
+const MODEL_URLS = [
+  "http://127.0.0.1:8000/models/gemma-3n-E2B-it-int4-Web.litertlm",
+  "http://localhost:8000/models/gemma-3n-E2B-it-int4-Web.litertlm"
+];
 const WASM_URL = chrome.runtime.getURL("lib/wasm");
-const MAX_TOKENS = 2048;
+const MAX_TOKENS = 4096;
 
 let llmInferencePromise;
 let llmInferenceInstance;
+let selectedModelUrl;
 const RESET_MODEL_EACH_REQUEST = true;
 let inferenceQueue = Promise.resolve();
 
 async function initModel() {
   if (!llmInferencePromise) {
     llmInferencePromise = (async () => {
-      console.info("[Gemma Redaction] Initializing model...");
       const filesetResolver = await FilesetResolver.forGenAiTasks(WASM_URL);
-      const instance = await LlmInference.createFromOptions(filesetResolver, {
-        baseOptions: {
-          modelAssetPath: MODEL_URL
-        },
-        maxTokens: MAX_TOKENS,
-        temperature: 0,
-        topK: 1,
-        randomSeed: 1
-      });
-      console.info("[Gemma Redaction] Model ready.");
-      llmInferenceInstance = instance;
-      return instance;
+      let lastError;
+
+      for (const modelUrl of MODEL_URLS) {
+        try {
+          console.info("[Gemma Redaction] Initializing model from:", modelUrl);
+          const instance = await LlmInference.createFromOptions(filesetResolver, {
+            baseOptions: {
+              modelAssetPath: modelUrl
+            },
+            maxTokens: MAX_TOKENS,
+            temperature: 0,
+            topK: 1,
+            randomSeed: 1
+          });
+          selectedModelUrl = modelUrl;
+          console.info("[Gemma Redaction] Model ready:", modelUrl);
+          llmInferenceInstance = instance;
+          return instance;
+        } catch (err) {
+          lastError = err;
+          console.warn("[Gemma Redaction] Model init failed for URL:", modelUrl, err);
+        }
+      }
+
+      throw (
+        lastError ??
+        new Error(
+          `Failed to load model from all URLs: ${MODEL_URLS.join(", ")}`
+        )
+      );
     })();
   }
   return llmInferencePromise;
@@ -48,6 +69,7 @@ async function runInference(prompt) {
     } finally {
       llmInferencePromise = null;
       llmInferenceInstance = null;
+      selectedModelUrl = null;
     }
   }
   return result;
@@ -67,17 +89,18 @@ chrome.runtime.onMessage.addListener((message) => {
   (async () => {
     await enqueueInference(async () => {
       try {
-        const inputText = (message.prompt ?? "").trim();
-        const result = await runInference(buildPrompt(inputText));
+        const inputText = message.prompt ?? "";
+        const result = await runInference(buildPrompt(inputText, message.redactionConfig));
         console.info("[Gemma Redaction] Inference complete.");
+        const normalized =
+          typeof result === "string"
+            ? normalizeOutput(result)
+            : normalizeOutput(JSON.stringify(result));
         chrome.runtime.sendMessage({
           target: "service_worker",
           type: "LLM_RESULT",
           requestId: message.requestId,
-          result:
-            typeof result === "string"
-              ? normalizeOutput(result)
-              : normalizeOutput(JSON.stringify(result))
+          result: normalized
         });
       } catch (err) {
         console.error("[Gemma Redaction] Inference failed:", err);

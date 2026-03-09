@@ -3,11 +3,18 @@
   "name": "Gemma WebGPU MVP",
   "version": "0.1.0",
   "description": "Run Gemma 3n WebGPU inference offscreen with MediaPipe.",
-  "permissions": ["offscreen", "scripting"],
+  "permissions": ["offscreen", "scripting", "storage"],
   "host_permissions": [
+    "http://127.0.0.1:8000/*",
     "http://localhost:8000/*",
     "https://chatgpt.com/*",
-    "https://chat.openai.com/*"
+    "https://chat.openai.com/*",
+    "https://gemini.google.com/*",
+    "https://claude.ai/*",
+    "https://grok.com/*",
+    "https://www.grok.com/*",
+    "https://perplexity.ai/*",
+    "https://www.perplexity.ai/*"
   ],
   "action": {
     "default_title": "Gemma",
@@ -19,12 +26,21 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://chatgpt.com/*", "https://chat.openai.com/*"],
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://gemini.google.com/*",
+        "https://claude.ai/*",
+        "https://grok.com/*",
+        "https://www.grok.com/*",
+        "https://perplexity.ai/*",
+        "https://www.perplexity.ai/*"
+      ],
       "js": ["content_script.js"],
       "run_at": "document_idle"
     }
   ],
   "content_security_policy": {
-    "extension_pages": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' http://localhost:8000;"
+    "extension_pages": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' http://127.0.0.1:8000 http://localhost:8000;"
   }
 }

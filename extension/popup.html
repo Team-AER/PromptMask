@@ -3,69 +3,114 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Gemma PII Redaction</title>
-    <style>
-      :root {
-        font-family: "Sofia Sans", "Trebuchet MS", system-ui, sans-serif;
-        color: #1b1f29;
-      }
-      body {
-        margin: 0;
-        min-width: 320px;
-        background: #f4f6f9;
-      }
-      .container {
-        padding: 16px;
-      }
-      h1 {
-        font-size: 1.2rem;
-        margin: 0 0 8px;
-      }
-      textarea {
-        width: 100%;
-        min-height: 90px;
-        border-radius: 10px;
-        border: 1px solid #cfd6e1;
-        padding: 10px;
-        font-size: 0.95rem;
-        resize: vertical;
-      }
-      button {
-        margin-top: 10px;
-        width: 100%;
-        border: none;
-        border-radius: 999px;
-        padding: 10px 12px;
-        background: #1b3a57;
-        color: white;
-        cursor: pointer;
-      }
-      button:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
-      .status {
-        margin-top: 8px;
-        font-size: 0.85rem;
-        color: #606778;
-      }
-      #output {
-        margin-top: 10px;
-        min-height: 110px;
-        background: #0f1622;
-        color: #e6eefc;
-        border-color: #1f2b3d;
-      }
-    </style>
+    <title>PromptMask</title>
+    <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
-    <div class="container">
-      <h1>PII Redaction</h1>
-      <textarea id="input">Contact Jane Doe at jane.doe@example.com or (415) 555-0199.</textarea>
-      <button id="run">Remove PII</button>
-      <div class="status" id="status">Idle</div>
-      <textarea id="output" readonly>Waiting for input...</textarea>
-    </div>
+    <main class="popup">
+      <header class="popup-header">
+        <h1>PromptMask</h1>
+        <span class="status-text" id="active-pill">Active</span>
+      </header>
+
+      <section class="card" aria-labelledby="sites-title">
+        <h2 class="card-title" id="sites-title">Sites</h2>
+        <div class="setting-list">
+          <div class="setting-row">
+            <label class="toggle-label" for="site-chatgpt">ChatGPT</label>
+            <label class="switch" aria-label="Toggle ChatGPT">
+              <input type="checkbox" id="site-chatgpt" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <label class="toggle-label" for="site-gemini">Gemini</label>
+            <label class="switch" aria-label="Toggle Gemini">
+              <input type="checkbox" id="site-gemini" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <label class="toggle-label" for="site-claude">Claude</label>
+            <label class="switch" aria-label="Toggle Claude">
+              <input type="checkbox" id="site-claude" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <label class="toggle-label" for="site-perplexity">Perplexity</label>
+            <label class="switch" aria-label="Toggle Perplexity">
+              <input type="checkbox" id="site-perplexity" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <label class="toggle-label" for="site-grok">Grok</label>
+            <label class="switch" aria-label="Toggle Grok">
+              <input type="checkbox" id="site-grok" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="categories-title">
+        <h2 class="card-title" id="categories-title">PII Categories</h2>
+        <div class="setting-list">
+          <div class="setting-row">
+            <label class="toggle-label" for="cat-identityContact">Identity &amp; Contact</label>
+            <label class="switch" aria-label="Toggle Identity and Contact">
+              <input type="checkbox" id="cat-identityContact" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <label class="toggle-label" for="cat-governmentLegal">Government &amp; Legal IDs</label>
+            <label class="switch" aria-label="Toggle Government and Legal IDs">
+              <input type="checkbox" id="cat-governmentLegal" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <label class="toggle-label" for="cat-financialPayment">Financial &amp; Payment</label>
+            <label class="switch" aria-label="Toggle Financial and Payment">
+              <input type="checkbox" id="cat-financialPayment" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <label class="toggle-label" for="cat-medical">Medical</label>
+            <label class="switch" aria-label="Toggle Medical">
+              <input type="checkbox" id="cat-medical" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <label class="toggle-label" for="cat-credentialsSecrets">Credentials &amp; Secrets</label>
+            <label class="switch" aria-label="Toggle Credentials and Secrets">
+              <input type="checkbox" id="cat-credentialsSecrets" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <label class="toggle-label" for="cat-networkDevice">Network &amp; Device</label>
+            <label class="switch" aria-label="Toggle Network and Device">
+              <input type="checkbox" id="cat-networkDevice" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <label class="toggle-label" for="cat-businessCase">Business &amp; Case References</label>
+            <label class="switch" aria-label="Toggle Business and Case References">
+              <input type="checkbox" id="cat-businessCase" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <p class="status" id="status" aria-live="polite"></p>
+    </main>
     <script type="module" src="popup.js"></script>
   </body>
 </html>
