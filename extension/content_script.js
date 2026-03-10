@@ -65,11 +65,23 @@ const SEND_BUTTON_SELECTORS = [
   "button[type='submit']"
 ];
 
+const PHASE_IDLE = "idle";
+const PHASE_PREVIEW = "redacted_preview";
+
 const state = {
   running: false,
-  bypassUntil: 0
+  phase: PHASE_IDLE,
+  lastFocusedComposer: null,
+  lastFocusedAt: 0,
+  nativeSubmitBypass: false,
+  nativeSubmitComposer: null,
+  nativeSubmitBypassUntil: 0
 };
 let globalFallbackBound = false;
+let suppressInputReset = false;
+let nativeSubmitBypassTimer = 0;
+const handledSendEvents = new WeakSet();
+const NATIVE_SUBMIT_BYPASS_MS = 1200;
 
 const SETTINGS_STORAGE_KEY = "promptmask_settings_v1";
 const DEFAULT_SETTINGS = {
@@ -158,6 +170,32 @@ function isEditableComposerElement(el) {
     return el.type !== "hidden" && !el.disabled && !el.readOnly;
   }
   return el.isContentEditable || el.getAttribute("role") === "textbox";
+}
+
+function rememberComposer(el) {
+  if (!isEditableComposerElement(el)) {
+    return;
+  }
+  state.lastFocusedComposer = el;
+  state.lastFocusedAt = Date.now();
+}
+
+function getRememberedComposer() {
+  const remembered = state.lastFocusedComposer;
+  if (!remembered) {
+    return null;
+  }
+  if (!remembered.isConnected) {
+    state.lastFocusedComposer = null;
+    state.lastFocusedAt = 0;
+    return null;
+  }
+  if (!isEditableComposerElement(remembered)) {
+    state.lastFocusedComposer = null;
+    state.lastFocusedAt = 0;
+    return null;
+  }
+  return remembered;
 }
 
 function getDeepActiveElement(root = document) {
@@ -463,15 +501,42 @@ function findComposer() {
       attrs.includes("claude") ||
       attrs.includes("perplexity") ||
       attrs.includes("grok");
-    return (
-      hasPromptHint ||
-      el.closest("form") ||
-      el.closest("[data-testid='conversation-compose-box']") ||
-      el.closest("rich-textarea")
-    );
+    const insideComposeRegion =
+      Boolean(el.closest("form")) ||
+      Boolean(el.closest("[data-testid='conversation-compose-box']")) ||
+      Boolean(el.closest("rich-textarea")) ||
+      Boolean(el.closest("[data-testid*='composer' i]")) ||
+      Boolean(el.closest("[class*='composer' i]"));
+
+    return hasPromptHint || insideComposeRegion;
   });
 
-  return editableCandidates[0] ?? null;
+  if (editableCandidates.length === 0) {
+    return null;
+  }
+
+  const scored = editableCandidates
+    .map((el) => {
+      const attrs = `${el.getAttribute("aria-label") ?? ""} ${el.getAttribute("placeholder") ?? ""}`
+        .toLowerCase()
+        .trim();
+      const rect = typeof el.getBoundingClientRect === "function" ? el.getBoundingClientRect() : null;
+      let score = 0;
+      if (attrs.includes("message")) score += 4;
+      if (attrs.includes("ask")) score += 4;
+      if (attrs.includes("prompt")) score += 3;
+      if (attrs.includes("claude") || attrs.includes("perplexity")) score += 2;
+      if (el.closest("[data-testid='conversation-compose-box']")) score += 3;
+      if (el.closest("[data-testid*='composer' i]") || el.closest("[class*='composer' i]")) score += 2;
+      if (el.closest("form")) score += 1;
+      if (el instanceof HTMLTextAreaElement || el.isContentEditable) score += 1;
+      if (rect && rect.bottom >= window.innerHeight * 0.45) score += 2;
+      if (rect && rect.width >= Math.min(window.innerWidth * 0.35, 420)) score += 1;
+      return { el, score };
+    })
+    .sort((a, b) => b.score - a.score);
+
+  return scored[0]?.el ?? editableCandidates[0];
 }
 
 function findComposerInContainer(container) {
@@ -700,12 +765,61 @@ function isEnterSubmit(event) {
   return event.key === "Enter" && !event.shiftKey && !event.isComposing;
 }
 
-function shouldBypass() {
-  return Date.now() < state.bypassUntil;
+function isPreviewReady() {
+  return state.phase === PHASE_PREVIEW;
 }
 
-function setBypass(durationMs = 1000) {
-  state.bypassUntil = Date.now() + durationMs;
+function enterPreview() {
+  state.phase = PHASE_PREVIEW;
+}
+
+function resetToIdle() {
+  state.phase = PHASE_IDLE;
+  hideToast();
+}
+
+function allowNativeSubmit(composer) {
+  state.nativeSubmitBypass = true;
+  state.nativeSubmitComposer = composer ?? null;
+  state.nativeSubmitBypassUntil = Date.now() + NATIVE_SUBMIT_BYPASS_MS;
+  window.clearTimeout(nativeSubmitBypassTimer);
+  nativeSubmitBypassTimer = window.setTimeout(() => {
+    state.nativeSubmitBypass = false;
+    state.nativeSubmitComposer = null;
+    state.nativeSubmitBypassUntil = 0;
+  }, NATIVE_SUBMIT_BYPASS_MS);
+}
+
+function shouldBypassSendInterception(composer) {
+  if (!state.nativeSubmitBypass || Date.now() > state.nativeSubmitBypassUntil) {
+    state.nativeSubmitBypass = false;
+    state.nativeSubmitComposer = null;
+    state.nativeSubmitBypassUntil = 0;
+    return false;
+  }
+  if (!state.nativeSubmitComposer || !composer) {
+    return true;
+  }
+  return state.nativeSubmitComposer === composer;
+}
+
+function hideToast() {
+  const toast = document.getElementById("gemma-redaction-toast");
+  if (toast) {
+    window.clearTimeout(toast._gemmaTimeout);
+    toast.style.opacity = "0";
+  }
+}
+
+function consumeSendEvent(event) {
+  if (!event) {
+    return;
+  }
+  event.preventDefault();
+  event.stopPropagation();
+  if (typeof event.stopImmediatePropagation === "function") {
+    event.stopImmediatePropagation();
+  }
 }
 
 function dispatchEnterSubmit(composer) {
@@ -753,7 +867,7 @@ function looksLikeValidRedaction(originalText, redactedText) {
   return true;
 }
 
-async function redactAndSend({ composer, sendButton, form }) {
+async function redactAndPreview({ composer, sendButton }) {
   if (!composer) {
     return;
   }
@@ -767,6 +881,7 @@ async function redactAndSend({ composer, sendButton, form }) {
   if (!originalText || !originalText.trim()) {
     return;
   }
+  rememberComposer(composer);
 
   state.running = true;
   setBusy(composer, sendButton, true);
@@ -795,6 +910,7 @@ async function redactAndSend({ composer, sendButton, form }) {
       console.warn("[Gemma Redaction] Suspicious output:", redacted);
       throw new Error("Redaction output looks incomplete.");
     }
+    suppressInputReset = true;
     if (redacted && redacted.trim()) {
       setComposerText(composer, redacted);
     } else {
@@ -807,59 +923,93 @@ async function redactAndSend({ composer, sendButton, form }) {
       await waitForUiUpdate();
     }
 
-    setBypass();
-    if (sendButton) {
-      sendButton.click();
-    } else if (form?.requestSubmit) {
-      form.requestSubmit();
-    } else if (form) {
-      form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
-    } else {
-      dispatchEnterSubmit(composer);
-    }
+    enterPreview();
+    // Allow an extra frame for trailing async input events to settle.
+    await waitForUiUpdate();
+    suppressInputReset = false;
+    showToast("\u2705 Redacted \u2014 press Enter to send", false);
   } catch (err) {
     setComposerText(composer, originalText);
     const message = formatError(err);
     console.error("[Gemma Redaction] Redaction failed:", err);
     showToast(`Redaction failed: ${message}`, true);
   } finally {
+    suppressInputReset = false;
     hideSpinner();
     setBusy(composer, sendButton, false);
     state.running = false;
   }
 }
 
+function handleSendAction(event, composer) {
+  if (!shouldRedactOnCurrentPage()) {
+    return;
+  }
+  if (event && handledSendEvents.has(event)) {
+    return;
+  }
+  if (event) {
+    handledSendEvents.add(event);
+  }
+  if (shouldBypassSendInterception(composer)) {
+    return;
+  }
+
+  if (state.running) {
+    consumeSendEvent(event);
+    return;
+  }
+
+  if (isPreviewReady()) {
+    // Phase 2: user confirmed — let the event through to submit normally.
+    allowNativeSubmit(composer);
+    resetToIdle();
+    return;
+  }
+
+  // Phase 1 (idle): intercept, redact, show preview.
+  if (!getComposerText(composer).trim()) {
+    return;
+  }
+  consumeSendEvent(event);
+  const { sendButton } = getComposerContext(composer);
+  redactAndPreview({ composer, sendButton });
+}
+
 function bindComposer(composer) {
   if (!composer) {
     return;
   }
+  rememberComposer(composer);
 
   if (composer.dataset.gemmaBound !== "true") {
     composer.dataset.gemmaBound = "true";
     composer.addEventListener(
+      "focus",
+      () => {
+        rememberComposer(composer);
+      },
+      true
+    );
+    composer.addEventListener(
+      "input",
+      () => {
+        rememberComposer(composer);
+        // User edited text while in preview — redaction is stale, reset.
+        if (isPreviewReady() && !suppressInputReset) {
+          resetToIdle();
+        }
+      },
+      true
+    );
+    composer.addEventListener(
       "keydown",
       (event) => {
-        if (shouldBypass()) {
-          return;
-        }
+        rememberComposer(composer);
         if (!isEnterSubmit(event)) {
           return;
         }
-        if (!shouldRedactOnCurrentPage()) {
-          return;
-        }
-        if (state.running) {
-          event.preventDefault();
-          event.stopPropagation();
-          return;
-        }
-        if (!getComposerText(composer).trim()) {
-          return;
-        }
-        event.preventDefault();
-        event.stopPropagation();
-        const { form, sendButton } = getComposerContext(composer);
-        redactAndSend({ composer, sendButton, form });
+        handleSendAction(event, composer);
       },
       true
     );
@@ -872,24 +1022,7 @@ function bindComposer(composer) {
     form.addEventListener(
       "submit",
       (event) => {
-        if (shouldBypass()) {
-          return;
-        }
-        if (!shouldRedactOnCurrentPage()) {
-          return;
-        }
-        if (state.running) {
-          event.preventDefault();
-          event.stopPropagation();
-          return;
-        }
-        if (!getComposerText(composer).trim()) {
-          return;
-        }
-        event.preventDefault();
-        event.stopPropagation();
-        const { sendButton: latestSendButton } = getComposerContext(composer);
-        redactAndSend({ composer, sendButton: latestSendButton, form });
+        handleSendAction(event, composer);
       },
       true
     );
@@ -898,26 +1031,16 @@ function bindComposer(composer) {
   if (sendButton && sendButton.dataset.gemmaBound !== "true") {
     sendButton.dataset.gemmaBound = "true";
     sendButton.addEventListener(
+      "pointerdown",
+      (event) => {
+        handleSendAction(event, composer);
+      },
+      true
+    );
+    sendButton.addEventListener(
       "click",
       (event) => {
-        if (shouldBypass()) {
-          return;
-        }
-        if (!shouldRedactOnCurrentPage()) {
-          return;
-        }
-        if (state.running) {
-          event.preventDefault();
-          event.stopPropagation();
-          return;
-        }
-        if (!getComposerText(composer).trim()) {
-          return;
-        }
-        event.preventDefault();
-        event.stopPropagation();
-        const { form: latestForm } = getComposerContext(composer);
-        redactAndSend({ composer, sendButton, form: latestForm });
+        handleSendAction(event, composer);
       },
       true
     );
@@ -947,56 +1070,57 @@ function bindGlobalFallbackHandlers() {
   globalFallbackBound = true;
 
   document.addEventListener(
-    "keydown",
+    "focusin",
     (event) => {
-      if (shouldBypass()) {
-        return;
-      }
-      if (!isEnterSubmit(event)) {
-        return;
-      }
-      if (!shouldRedactOnCurrentPage()) {
-        return;
-      }
-      if (state.running) {
-        event.preventDefault();
-        event.stopPropagation();
-        return;
-      }
-
       const composer =
         findComposerFromEventPath(event) ||
-        (isEditableComposerElement(getDeepActiveElement()) ? getDeepActiveElement() : null);
-      if (!composer) {
-        return;
+        (isEditableComposerElement(event.target) ? event.target : null);
+      if (composer) {
+        rememberComposer(composer);
       }
-      if (!getComposerText(composer).trim()) {
-        return;
-      }
-
-      event.preventDefault();
-      event.stopPropagation();
-      const { form, sendButton } = getComposerContext(composer);
-      redactAndSend({ composer, sendButton, form });
     },
     true
   );
 
   document.addEventListener(
-    "click",
+    "input",
     (event) => {
-      if (shouldBypass()) {
-        return;
+      const composer =
+        findComposerFromEventPath(event) ||
+        (isEditableComposerElement(event.target) ? event.target : null);
+      if (composer) {
+        rememberComposer(composer);
+        if (isPreviewReady() && !suppressInputReset) {
+          resetToIdle();
+        }
       }
-      if (!shouldRedactOnCurrentPage()) {
-        return;
-      }
-      if (state.running) {
-        event.preventDefault();
-        event.stopPropagation();
+    },
+    true
+  );
+
+  document.addEventListener(
+    "keydown",
+    (event) => {
+      if (!isEnterSubmit(event)) {
         return;
       }
 
+      const composer =
+        findComposerFromEventPath(event) ||
+        (isEditableComposerElement(getDeepActiveElement()) ? getDeepActiveElement() : null) ||
+        getRememberedComposer();
+      if (!composer) {
+        return;
+      }
+
+      handleSendAction(event, composer);
+    },
+    true
+  );
+
+  document.addEventListener(
+    "pointerdown",
+    (event) => {
       const path = typeof event.composedPath === "function" ? event.composedPath() : [];
       const sendControl = path.find(matchesSendControl);
       if (!sendControl) {
@@ -1007,17 +1131,39 @@ function bindGlobalFallbackHandlers() {
       const composer =
         (isEditableComposerElement(deepActive) ? deepActive : null) ||
         findComposerFromEventPath(event) ||
+        getRememberedComposer() ||
         findComposerNearElement(sendControl) ||
         findComposer();
-      if (!composer || !getComposerText(composer).trim()) {
+      if (!composer) {
         return;
       }
 
-      event.preventDefault();
-      event.stopPropagation();
-      const { form, sendButton } = getComposerContext(composer);
-      const effectiveSendButton = sendControl instanceof HTMLElement ? sendControl : sendButton;
-      redactAndSend({ composer, sendButton: effectiveSendButton, form });
+      handleSendAction(event, composer);
+    },
+    true
+  );
+
+  document.addEventListener(
+    "click",
+    (event) => {
+      const path = typeof event.composedPath === "function" ? event.composedPath() : [];
+      const sendControl = path.find(matchesSendControl);
+      if (!sendControl) {
+        return;
+      }
+
+      const deepActive = getDeepActiveElement();
+      const composer =
+        (isEditableComposerElement(deepActive) ? deepActive : null) ||
+        findComposerFromEventPath(event) ||
+        getRememberedComposer() ||
+        findComposerNearElement(sendControl) ||
+        findComposer();
+      if (!composer) {
+        return;
+      }
+
+      handleSendAction(event, composer);
     },
     true
   );

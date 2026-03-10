@@ -53,13 +53,20 @@ function testBuildPromptWithScopedCategories() {
     }
   });
 
-  assert.ok(prompt.includes("Scope override for this request"));
-  assert.ok(
-    prompt.includes(
-      "ONLY redact categories that map to these placeholders: [NAME N], [PHONE N], [EMAIL N], [USERNAME N], [ADDRESS N], [DATE_OF_BIRTH N]."
-    )
-  );
-  assert.ok(prompt.includes("Do NOT redact any other category"));
+  // Should include identity contact placeholders
+  assert.ok(prompt.includes("[NAME 1], [NAME 2]"));
+  assert.ok(prompt.includes("[PHONE 1], [PHONE 2]"));
+  assert.ok(prompt.includes("[EMAIL 1], [EMAIL 2]"));
+  assert.ok(prompt.includes("Redact full names"));
+
+  // Should NOT include disabled categories' placeholder definitions
+  assert.ok(!prompt.includes("- SSN and government ID numbers"));
+  assert.ok(!prompt.includes("- IP addresses ->"));
+  assert.ok(!prompt.includes("- Bank details ->"));
+  assert.ok(!prompt.includes("- Insurance IDs ->"));
+  assert.ok(!prompt.includes("- API keys ->"));
+  assert.ok(!prompt.includes("- Order/transaction IDs ->"));
+  assert.ok(!prompt.includes("- Device identifiers"));
 }
 
 function testBuildPromptWithNoCategoriesEnabled() {
@@ -76,6 +83,7 @@ function testBuildPromptWithNoCategoriesEnabled() {
   });
 
   assert.ok(prompt.includes("No PII categories are enabled"));
+  assert.ok(prompt.includes("Return the input unchanged"));
 }
 
 function testPromptListsAllPlaceholders() {

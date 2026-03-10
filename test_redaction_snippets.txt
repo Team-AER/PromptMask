@@ -1,0 +1,560 @@
+==============================================================
+TEST SNIPPET 1: Identity & Contact — Names, Email, Phone
+==============================================================
+Hi, my name is Priya Sharma and I'd like to update my contact details.
+You can reach me at priya.sharma92@gmail.com or call me at +91-98765-43210.
+My colleague Arjun Mehta can also be contacted at arjun.mehta@outlook.com.
+
+==============================================================
+TEST SNIPPET 2: Address — Full street address
+==============================================================
+Please ship the package to:
+Priya Sharma
+742 Evergreen Terrace, Apt 4B
+Springfield, IL 62704
+United States
+
+==============================================================
+TEST SNIPPET 3: SSN and Government IDs
+==============================================================
+For the background check, my Social Security Number is 123-45-6789.
+My spouse's SSN is 987-65-4320.
+
+==============================================================
+TEST SNIPPET 4: Date of Birth
+==============================================================
+Patient date of birth: 03/15/1990
+The insured was born on January 7, 1985.
+DOB: 1992-08-22
+
+==============================================================
+TEST SNIPPET 5: Credit Card, Expiry, CVV
+==============================================================
+Please charge my Visa card:
+Card number: 4111 1111 1111 1111
+Expiry: 09/27
+CVV: 482
+
+==============================================================
+TEST SNIPPET 6: Bank Account Details
+==============================================================
+Wire the refund to my bank account:
+Account holder: Ravi Patel
+Bank: State Bank of India
+Account number: 20345678901234
+IFSC: SBIN0001234
+
+==============================================================
+TEST SNIPPET 7: PAN and GST (India-specific)
+==============================================================
+My PAN is ABCPK1234D and
+our company GST registration number is 27ABCDE1234F1Z5.
+
+==============================================================
+TEST SNIPPET 8: Driver's License
+==============================================================
+My driver's license number is D400-1234-5678 issued by the state of California.
+
+==============================================================
+TEST SNIPPET 9: Insurance ID and MRN
+==============================================================
+Insurance ID: BCBS-98765432
+Medical record number: MRN-20260045
+The patient, Kavita Nair, was admitted on 2026-02-10.
+
+==============================================================
+TEST SNIPPET 10: IP Address and Device ID
+==============================================================
+The suspicious login came from IP address 192.168.45.12
+and device identifier A1B2C3D4E5F6.
+Another attempt from 10.0.0.7 was blocked.
+
+==============================================================
+TEST SNIPPET 11: Order, Invoice, and Case/Ticket IDs
+==============================================================
+Regarding order #ORD-2026-78543, the invoice INV-2026-00173 was sent last week.
+Please reference ticket TCK-556201 and case number REF-12345 for follow-up.
+
+==============================================================
+TEST SNIPPET 12: Username / Account Handle
+==============================================================
+My Twitter handle is @priya_codes and my GitHub username is priya-dev.
+Please update the account associated with username cooluser99.
+
+==============================================================
+TEST SNIPPET 13: API Key and Access Token
+==============================================================
+Here is my API key: sk-abc123def456ghi789jkl012mno345pqr678
+And this access token should work: ghp_xYz1234567890AbCdEfGhIjKlMnOpQrStUv
+
+==============================================================
+TEST SNIPPET 14: PayPal Details
+==============================================================
+Send the payment to my PayPal account: ravi.patel.payments@gmail.com
+My PayPal ID is RAVI-PP-8923.
+
+==============================================================
+TEST SNIPPET 15: Multi-entity — Multiple names, emails, SSNs
+==============================================================
+Employee records:
+- Neha Kulkarni, SSN 111-22-3333, neha.k@company.org
+- Rohan Desai, SSN 444-55-6666, rohan.d@company.org
+- Ananya Iyer, SSN 777-88-9999, ananya.i@company.org
+
+==============================================================
+TEST SNIPPET 16: Same PII value repeated (numbering reuse)
+==============================================================
+Priya Sharma submitted a request on Monday.
+The request was approved by Arjun Mehta.
+Priya Sharma was notified of the approval by email.
+
+==============================================================
+TEST SNIPPET 17: Email header style (From/To/Case ID)
+==============================================================
+From: Neha Kulkarni <neha.kulkarni@acme.com>
+To: support@acme.com
+Subject: Case ID CAS-2026-04421 — billing discrepancy
+
+Hi team,
+
+I noticed a discrepancy on invoice INV-2026-00299. My account number
+is 55512345678. Please look into this at your earliest convenience.
+
+Thanks,
+Neha Kulkarni
++1 (555) 234-5678
+
+==============================================================
+TEST SNIPPET 18: Composite — Full name + address + email + DOB
+==============================================================
+Name: Amit Verma
+Date of birth: 12/05/1988
+Email: amit.verma@protonmail.com
+Phone: +44 7700 900123
+Address: 221B Baker Street, London NW1 6XE, United Kingdom
+
+==============================================================
+TEST SNIPPET 19: Name variant / abbreviation handling
+==============================================================
+The claim was filed by Neha Kulkarni.
+Neha K. confirmed receipt of the settlement letter.
+
+==============================================================
+TEST SNIPPET 20: Mixed PII in a realistic paragraph
+==============================================================
+Dear Support,
+
+I am writing to report unauthorized activity on my account. My name is
+Sanjay Gupta and my date of birth is June 3, 1979. I can be reached at
+sanjay.gupta@yahoo.com or +1-408-555-0199.
+
+The unauthorized charge of $499.99 appeared on my Mastercard ending in
+5432 (full number: 5432 1098 7654 3210, exp 11/28, CVV 731). The
+transaction reference is TXN-20260287 and it was made from IP 203.0.113.42.
+
+My SSN on file is 321-54-9876. My mailing address is 1600 Pennsylvania
+Avenue NW, Washington, DC 20500.
+
+Please investigate urgently.
+
+Regards,
+Sanjay Gupta
+
+==============================================================
+TEST SNIPPET 21: No PII — should remain unchanged
+==============================================================
+The weather forecast for tomorrow calls for partly cloudy skies
+with a high of 72°F and a low of 55°F. Remember to bring an umbrella
+just in case.
+
+==============================================================
+TEST SNIPPET 22: Formatting preservation — bullets and indentation
+==============================================================
+Patient intake form:
+  - Full name: Lisa Chen
+  - DOB: 1995-04-18
+  - Phone: (650) 555-0142
+  - Email: lisa.chen@stanford.edu
+  - Insurance ID: UHC-5543219
+  - MRN: MRN-30044521
+  - Primary address:
+      45 Elm Street, Suite 200
+      Palo Alto, CA 94301
+
+==============================================================
+TEST SNIPPET 23: Multiple categories interleaved in conversation
+==============================================================
+Agent: Can you verify your identity?
+Customer: Sure. I'm Deepa Rao, born on 1987-11-30. My SSN is 456-78-9012.
+Agent: And the card on file?
+Customer: Visa 4000 1234 5678 9010, expiry 03/29, CVV 115.
+Agent: What's your current address?
+Customer: 88 Market Street, Floor 3, San Francisco, CA 94105.
+Agent: Email and phone for confirmation?
+Customer: deepa.rao@icloud.com, +1-415-555-0176.
+
+==============================================================
+TEST SNIPPET 24: Credentials in a config/code context
+==============================================================
+# .env file
+DATABASE_URL=postgres://admin:s3cretP@ss@db.example.com:5432/prod
+API_KEY=sk-proj-abc123XYZ456def789GHI
+GITHUB_TOKEN=ghp_aB3cD4eF5gH6iJ7kL8mN9oP0qR1sT2uV3
+STRIPE_SECRET=sk_test_FAKE0000000000000000000000000000
+AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+
+==============================================================
+TEST SNIPPET 25: International phone numbers and addresses
+==============================================================
+Contact list:
+  - Yuki Tanaka, +81 90-1234-5678, yuki.tanaka@ntt.co.jp
+    3-1-1 Kasumigaseki, Chiyoda-ku, Tokyo 100-8977, Japan
+  - Hans Müller, +49 170 9876543, hans.mueller@web.de
+    Friedrichstraße 43, 10117 Berlin, Germany
+  - Maria Silva, +55 11 91234-5678, maria.silva@uol.com.br
+    Av. Paulista, 1578, São Paulo, SP 01310-200, Brazil
+
+==============================================================
+TEST SNIPPET 26: Edge case — PII-like labels without actual values
+==============================================================
+Our system supports redaction of the following fields:
+Phone number, Email address, Social Security Number, and Credit Card.
+No actual PII is present in this description.
+
+==============================================================
+TEST SNIPPET 27: TIN/EIN (Tax Identification)
+==============================================================
+Our company's EIN is 12-3456789. Please use TIN 98-7654321
+for the subsidiary's tax filing.
+
+==============================================================
+TEST SNIPPET 28: Mixed with code and technical text
+==============================================================
+The user reported that after logging in with username admin_jane,
+their session token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U
+was exposed in the browser console. The request originated from
+IP 172.16.254.1 and device ID F7G8H9I0J1K2.
+
+Jane Doe's email is jane.doe@techcorp.io and her direct line
+is +1 (212) 555-0198.
+
+==============================================================
+TEST SNIPPET 29: Healthcare — Discharge summary
+==============================================================
+DISCHARGE SUMMARY
+
+Patient: Meera Krishnamurthy
+DOB: 04/22/1963
+MRN: MRN-80021934
+Insurance ID: AETNA-PX-554312
+
+Date of Admission: 2026-02-28
+Date of Discharge: 2026-03-05
+Attending Physician: Dr. Robert Chen
+
+Diagnosis: Acute anterior myocardial infarction
+
+Summary: Meera Krishnamurthy, a 62-year-old female, presented to the
+emergency department on 2/28 with chest pain radiating to the left arm.
+EKG confirmed ST elevation. Patient underwent successful percutaneous
+coronary intervention (PCI). Post-procedure recovery was uneventful.
+
+Medications on discharge: Aspirin 81mg daily, Atorvastatin 40mg daily,
+Metoprolol 25mg BID.
+
+Follow-up: Cardiology appointment with Dr. Robert Chen in 2 weeks.
+Contact: (408) 555-0221 or meera.krish@gmail.com
+
+Discharge address: 1250 Oak Valley Drive, San Jose, CA 95131
+
+==============================================================
+TEST SNIPPET 30: Healthcare — Referral letter
+==============================================================
+RE: Referral for Orthopedic Consultation
+
+Dear Dr. Amanda Fitzgerald,
+
+I am referring my patient, Vikram Patel (DOB: 09/14/1978, MRN: MRN-60098712),
+for evaluation of persistent right knee pain following a sports injury on
+February 10, 2026.
+
+Patient's insurance: BlueCross ID BCBS-77234561.
+Phone: +1 (650) 555-0334
+Email: vikram.patel@hotmail.com
+
+Mr. Patel resides at 320 Willow Creek Lane, Apt 12, Mountain View, CA 94040.
+Please send the consultation notes to my office at your convenience.
+
+Sincerely,
+Dr. Sarah Kim
+Peninsula Family Medicine
+(650) 555-0100
+
+==============================================================
+TEST SNIPPET 31: Finance — Mortgage application excerpt
+==============================================================
+MORTGAGE LOAN APPLICATION
+
+Borrower Information:
+  Name: Jennifer Rodriguez
+  SSN: 234-56-7890
+  Date of Birth: 07/19/1985
+  Phone: (312) 555-0488
+  Email: j.rodriguez@comcast.net
+
+Employment:
+  Employer: Horizon Technologies Inc.
+  Annual Income: $112,000
+
+Property Address: 4521 Maple Avenue, Unit 7C, Chicago, IL 60614
+
+Bank Details for Direct Debit:
+  Bank: Chase Bank
+  Account Number: 3344556677
+  Routing Number: 021000021
+
+Co-Borrower Information:
+  Name: Carlos Rodriguez
+  SSN: 345-67-8901
+  Date of Birth: 11/03/1983
+
+==============================================================
+TEST SNIPPET 32: Finance — Bank dispute letter
+==============================================================
+To: Customer Disputes Department
+From: Anita Patel <anita.patel@outlook.com>
+Date: March 8, 2026
+
+Subject: Unauthorized Transaction Dispute — Account #9988776655
+
+Dear Sir/Madam,
+
+I am writing to dispute a fraudulent charge on my account. On March 5,
+2026, a transaction of $1,247.00 was debited from my checking account
+(Account #9988776655, Chase Bank, Routing #021000089).
+
+The charge was made by "ELCTRNX STORE" and I did not authorize this
+purchase. The card used was my Visa debit ending in 4455
+(full number: 4532 8901 2345 4455, exp 06/28).
+
+My details for verification:
+  Name: Anita Patel
+  SSN last 4: 7890
+  DOB: 02/14/1991
+  Phone: +1-312-555-0277
+  Address: 789 Lakeshore Drive, Apt 3A, Chicago, IL 60611
+
+The fraudulent transaction IP was traced to 45.33.128.77.
+Reference number: TXN-20260305-8834.
+
+Please investigate and reverse this charge immediately.
+
+Regards,
+Anita Patel
+
+==============================================================
+TEST SNIPPET 33: Insurance — Auto claim filing
+==============================================================
+AUTO INSURANCE CLAIM
+
+Policyholder: David Park
+Policy #: INS-AUTO-2026-55123
+Driver's License: D520-4321-8765-00 (State: Illinois)
+DOB: 06/30/1989
+Phone: (773) 555-0156
+Email: david.park@live.com
+
+Vehicle: 2024 Honda Accord, VIN 1HGCV1F34RA012345
+
+Incident Date: March 3, 2026
+Location: Intersection of Clark St & Diversey Pkwy, Chicago, IL
+
+Description: Rear-ended by another vehicle at a red light. Other driver:
+Sarah Mitchell, license plate IL-ABC1234, insurance Progressive
+policy #PRG-7788991.
+
+Damage estimate: $4,200
+Claim reference: CLM-2026-030301
+
+Contact for this claim: david.park@live.com or (773) 555-0156
+Mailing address: 155 North Dearborn Street, Apt 801, Chicago, IL 60601
+
+==============================================================
+TEST SNIPPET 34: Legal — Demand letter excerpt
+==============================================================
+VIA CERTIFIED MAIL
+
+March 7, 2026
+
+RE: Demand for Payment — Case No. CAS-2026-IL-00482
+
+Dear Michael Torres,
+
+This letter serves as formal demand for payment of $15,750.00 owed to
+my client, Patricia Nguyen (SSN: 567-89-0123), pursuant to the
+promissory note dated January 15, 2025.
+
+Ms. Nguyen can be reached at patricia.nguyen@protonmail.com or
++1 (773) 555-0399. Her current address is 2200 South Michigan Avenue,
+Suite 1400, Chicago, IL 60616.
+
+Failure to remit payment within 30 days will result in legal action.
+
+Regards,
+Attorney James O'Brien
+O'Brien & Associates, LLP
+(312) 555-0550
+james.obrien@obrienlaw.com
+
+==============================================================
+TEST SNIPPET 35: HR/Employment — New hire onboarding form
+==============================================================
+NEW EMPLOYEE ONBOARDING
+
+Employee: Priya Ramaswamy
+SSN: 678-90-1234
+Date of Birth: 12/25/1995
+Email: priya.ramaswamy@newcompany.com
+Phone: +1 (408) 555-0612
+Address: 900 Castro Street, Apt 5, Mountain View, CA 94041
+
+Emergency Contact:
+  Name: Suresh Ramaswamy
+  Phone: +1 (408) 555-0613
+  Relationship: Father
+
+Payroll Direct Deposit:
+  Bank: Wells Fargo
+  Account Number: 7766554433
+  Routing Number: 121000248
+
+Tax Information:
+  Federal W-4 status: Single
+  State withholding: California
+
+IT Setup:
+  Username: pramaswamy
+  Laptop device ID: L3M4N5O6P7Q8
+  VPN IP assigned: 10.20.30.44
+
+==============================================================
+TEST SNIPPET 36: Government — Benefits application
+==============================================================
+SUPPLEMENTAL NUTRITION ASSISTANCE PROGRAM (SNAP) APPLICATION
+
+Applicant: Maria Gonzalez
+SSN: 789-01-2345
+Date of Birth: 03/08/1972
+Phone: (214) 555-0833
+Address: 4410 Cedar Springs Road, Dallas, TX 75219
+
+Household Member 2:
+  Name: Luis Gonzalez
+  SSN: 890-12-3456
+  DOB: 07/21/1970
+  Relationship: Spouse
+
+Household Member 3:
+  Name: Sofia Gonzalez
+  SSN: 901-23-4567
+  DOB: 01/15/2010
+  Relationship: Daughter
+
+Monthly Income: $2,100 (employer: Dallas County Public Works)
+Bank account balance: $347.22 (Account #1122334455, Bank of America)
+
+Case Worker: Janet Williams, Case ID SW-2026-DAL-0093
+Contact: janet.williams@dallascounty.gov, (214) 555-0900
+
+==============================================================
+TEST SNIPPET 37: Government — Tax filing / IRS letter
+==============================================================
+NOTICE OF TAX DEFICIENCY
+
+Taxpayer: Richard Kim
+SSN: 012-34-5678
+TIN/EIN (business): 56-7890123
+
+Dear Richard Kim,
+
+Based on our records, your 2025 federal income tax return (Form 1040)
+shows unreported income of $8,400. The assessed additional tax due is
+$2,016.00, plus penalties and interest.
+
+Please remit payment or respond by April 15, 2026.
+
+Taxpayer address on file:
+  558 Beacon Street, Apt 2F, Boston, MA 02215
+
+Contact: richard.kim@email.com, (617) 555-0741
+
+For correspondence, reference Case ID IRS-2026-0044781.
+
+==============================================================
+TEST SNIPPET 38: Insurance — Health insurance claim
+==============================================================
+HEALTH INSURANCE CLAIM FORM
+
+Patient Information:
+  Name: Lakshmi Venkatesh
+  DOB: 08/17/1956
+  Insurance ID: UHC-MM-3321456
+  MRN: MRN-45002187
+  Phone: +1 (510) 555-0290
+  Address: 230 Grand Avenue, Oakland, CA 94610
+
+Provider Information:
+  Physician: Dr. Emily Chang
+  NPI: 1234567890
+  Facility: Bay Area Medical Center
+
+Diagnosis: Type 2 Diabetes Mellitus (E11.9)
+Service Date: 2026-03-01
+Billed Amount: $385.00
+
+Subscriber Information:
+  Subscriber Name: Rajesh Venkatesh
+  Subscriber SSN: 123-45-9999
+  Subscriber DOB: 05/02/1954
+  Group #: GRP-TECH-88432
+
+==============================================================
+TEST SNIPPET 39: Canadian SIN and address
+==============================================================
+Employment Authorization — Canada
+
+Employee: Jean-Pierre Tremblay
+Social Insurance Number (SIN): 046-454-286
+Date of Birth: 1990-06-12
+Phone: +1 (514) 555-0433
+Email: jp.tremblay@videotron.ca
+Address: 275 Rue Notre-Dame Est, Montréal, QC H2Y 1C6, Canada
+
+Employer: Bombardier Aerospace
+Work permit #: W-2025-ON-443210
+
+==============================================================
+TEST SNIPPET 40: Education — Student record with FERPA data
+==============================================================
+STUDENT ACADEMIC RECORD
+
+Student: Emily Washington
+Student ID: STU-2026-04489
+DOB: 2004-09-03
+SSN: 234-00-5678
+Email: e.washington@university.edu
+Phone: (617) 555-0822
+Address: 12 Harvard Yard, Cambridge, MA 02138
+
+Parent/Guardian:
+  Name: Marcus Washington
+  Phone: (617) 555-0823
+  Email: m.washington@comcast.net
+
+Financial Aid:
+  Bank: Citizens Bank
+  Account #: 5566778899
+  Routing #: 011500120
+
+Advisor: Prof. Rebecca Liu, rebecca.liu@university.edu

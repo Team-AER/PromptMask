@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Gemma WebGPU MVP",
+  "name": "PromptMask",
   "version": "0.1.0",
   "description": "Run Gemma 3n WebGPU inference offscreen with MediaPipe.",
   "permissions": ["offscreen", "scripting", "storage"],
@@ -11,6 +11,7 @@
     "https://chat.openai.com/*",
     "https://gemini.google.com/*",
     "https://claude.ai/*",
+    "https://www.claude.ai/*",
     "https://grok.com/*",
     "https://www.grok.com/*",
     "https://perplexity.ai/*",
@@ -31,13 +32,16 @@
         "https://chat.openai.com/*",
         "https://gemini.google.com/*",
         "https://claude.ai/*",
+        "https://www.claude.ai/*",
         "https://grok.com/*",
         "https://www.grok.com/*",
         "https://perplexity.ai/*",
         "https://www.perplexity.ai/*"
       ],
       "js": ["content_script.js"],
-      "run_at": "document_idle"
+      "run_at": "document_start",
+      "all_frames": true,
+      "match_about_blank": true
     }
   ],
   "content_security_policy": {
