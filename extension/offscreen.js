@@ -10,7 +10,6 @@ const MAX_TOKENS = 4096;
 
 let llmInferencePromise;
 let llmInferenceInstance;
-let selectedModelUrl;
 const RESET_MODEL_EACH_REQUEST = true;
 let inferenceQueue = Promise.resolve();
 
@@ -32,7 +31,6 @@ async function initModel() {
             topK: 1,
             randomSeed: 1
           });
-          selectedModelUrl = modelUrl;
           console.info("[Gemma Redaction] Model ready:", modelUrl);
           llmInferenceInstance = instance;
           return instance;
@@ -69,7 +67,6 @@ async function runInference(prompt) {
     } finally {
       llmInferencePromise = null;
       llmInferenceInstance = null;
-      selectedModelUrl = null;
     }
   }
   return result;

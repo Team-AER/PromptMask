@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- `download_models.py` pulls pre-converted Gemma models from Hugging Face into `models/` (generated, gitignored).
+- `download_models.py` pulls the extension's Gemma model from Hugging Face into `models/` (generated, gitignored).
 - `bundle_model.py` bundles custom TFLite + tokenizer inputs into `.task` files.
 - `serve_model.py` hosts `test.html` and `models/` with CORS for local WebGPU testing.
 - `extension/` contains the Chrome extension (MV3) plus WebGPU/MediaPipe runtime assets under `extension/lib/wasm`.
@@ -11,7 +11,7 @@
 ## Build, Test, and Development Commands
 - `pip install -r requirements.txt` installs Python dependencies.
 - `python download_models.py --list` lists available models.
-- `python download_models.py --model gemma3-1b-task` downloads a specific model into `models/`.
+- `python download_models.py --model gemma3n-e2b-web` downloads the extension model into `models/`.
 - `python bundle_model.py --tflite path/to/model.tflite --tokenizer path/to/tokenizer.model --output my_model.task` creates a `.task` bundle.
 - `python serve_model.py` serves `test.html` at `http://localhost:8000/test.html` and model files at `http://localhost:8000/models/`.
 - `lit run models/<model>.litertlm -f prompt.txt --backend cpu` runs local inference with the bundled LiteRT-LM CLI.

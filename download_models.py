@@ -1,70 +1,29 @@
 #!/usr/bin/env python3
 """
-Download Gemma models in .task and .litertlm formats from HuggingFace.
-These models are pre-converted and ready to use with MediaPipe LLM Inference.
+Download the Gemma model used by the Chrome extension from Hugging Face.
+This model is pre-converted and ready to use with MediaPipe LLM Inference.
 """
 
-import os
 import argparse
 from pathlib import Path
-from huggingface_hub import hf_hub_download, snapshot_download
+from huggingface_hub import hf_hub_download
 from huggingface_hub.utils import get_token
 
 
-# Available models with their HuggingFace repo info
+# The extension uses a single WebGPU-optimized LiteRT-LM model.
 MODELS = {
-    # Task format models
-    "gemma3-1b-task": {
-        "repo_id": "litert-community/Gemma3-1B-IT",
-        "filename": "Gemma3-1B-IT-int4.task",
-        "format": "task",
-        "description": "Gemma 3 1B - Lightweight text model in .task format",
-    },
-    # LiteRT-LM format models
-    "gemma3n-e2b-litertlm": {
-        "repo_id": "google/gemma-3n-E2B-it-litert-lm",
-        "filename": "gemma-3n-E2B-it-int4.litertlm",
-        "format": "litertlm",
-        "description": "Gemma 3n E2B - Multimodal (text+image+audio) in .litertlm format",
-    },
     "gemma3n-e2b-web": {
         "repo_id": "google/gemma-3n-E2B-it-litert-lm",
         "filename": "gemma-3n-E2B-it-int4-Web.litertlm",
         "format": "litertlm",
-        "description": "Gemma 3n E2B WebGPU - Optimized .litertlm for web",
-    },
-    "gemma3n-e4b-litertlm": {
-        "repo_id": "google/gemma-3n-E4B-it-litert-lm",
-        "filename": "gemma-3n-E4B-it-int4.litertlm",
-        "format": "litertlm",
-        "description": "Gemma 3n E4B - Larger multimodal model in .litertlm format",
-    },
-    # Bin format (legacy)
-    "gemma2-2b-bin": {
-        "repo_id": "litert-community/Gemma2-2B-IT",
-        "filename": "gemma2-2b-it-gpu-int4.bin",
-        "format": "bin",
-        "description": "Gemma 2 2B - Legacy .bin format for broader compatibility",
-    },
-    # FunctionGemma (custom) models
-    "functiongemma-270m-litertlm": {
-        "repo_id": "sasha-denisov/function-gemma-270M-it",
-        "filename": "functiongemma-270M-it.litertlm",
-        "format": "litertlm",
-        "description": "FunctionGemma 270M - Instruction-tuned model in .litertlm format",
-    },
-    "functiongemma-270m-task": {
-        "repo_id": "sasha-denisov/function-gemma-270M-it",
-        "filename": "functiongemma-270M-it.task",
-        "format": "task",
-        "description": "FunctionGemma 270M - Instruction-tuned model in .task format",
+        "description": "Gemma 3n E2B WebGPU - Optimized .litertlm model for the extension",
     },
 }
 
 
 def list_models():
     """Print available models."""
-    print("\n📦 Available Gemma Models for MediaPipe:\n")
+    print("\n📦 Available Gemma Models for the extension:\n")
     print(f"{'Model Key':<25} {'Format':<10} {'Description'}")
     print("-" * 80)
     for key, info in MODELS.items():
@@ -139,7 +98,7 @@ def download_all(output_dir: str = "models", formats: list = None):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Download Gemma models for MediaPipe LLM Inference"
+        description="Download the Gemma model used by the Chrome extension"
     )
     parser.add_argument(
         "--model",
@@ -160,7 +119,7 @@ def main():
     parser.add_argument(
         "--format",
         type=str,
-        choices=["task", "litertlm", "bin"],
+        choices=["litertlm"],
         help="Download all models of a specific format",
     )
     parser.add_argument(
@@ -187,10 +146,8 @@ def main():
         download_model(args.model, args.output_dir)
         return
     
-    # Default: download recommended models (one of each format)
-    print("🚀 Downloading recommended models (task + litertlm formats)...")
-    download_model("gemma3-1b-task", args.output_dir)
-    download_model("gemma3n-e2b-litertlm", args.output_dir)
+    print("🚀 Downloading the extension's default model...")
+    download_model("gemma3n-e2b-web", args.output_dir)
 
 
 if __name__ == "__main__":

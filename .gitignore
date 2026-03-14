@@ -15,3 +15,5 @@ lit
 
 #plans and PRD
 docs/
+
+.DS_Store
