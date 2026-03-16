@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Web Model Smoke Test</title>
+  </head>
+  <body>
+    <pre id="result">starting</pre>
+    <script type="module">
+      import { FilesetResolver, LlmInference } from "./extension/lib/genai_bundle.mjs";
+      import { buildPrompt, normalizeOutput } from "./extension/offscreen_utils.mjs";
+
+      const resultEl = document.getElementById("result");
+      const modelPath =
+        "file:///Users/nidhibharani/Documents/Projects/gemma_on_edge/models/promptmask-gemma3n-redactor-v1.litertlm";
+      const wasmPath =
+        "file:///Users/nidhibharani/Documents/Projects/gemma_on_edge/extension/lib/wasm";
+      const input =
+        "Hi, my name is Priya Sharma and my email is priya.sharma92@gmail.com.";
+
+      function mark(stage, extra = "") {
+        resultEl.textContent = `${new Date().toISOString()} ${stage}${extra ? ` ${extra}` : ""}`;
+      }
+
+      async function main() {
+        try {
+          mark("gpu", `available=${Boolean(navigator.gpu)}`);
+          const filesetResolver = await FilesetResolver.forGenAiTasks(wasmPath);
+          mark("fileset-ready");
+          const llmInference = await LlmInference.createFromOptions(filesetResolver, {
+            baseOptions: {
+              modelAssetPath: modelPath
+            },
+            maxTokens: 4096,
+            temperature: 0,
+            topK: 1,
+            randomSeed: 1
+          });
+          mark("model-ready");
+
+          let output;
+          if (typeof llmInference.generateResponse === "function") {
+            mark("generating", "method=generateResponse");
+            output = await llmInference.generateResponse(buildPrompt(input));
+          } else {
+            mark("generating", "method=generate");
+            output = await llmInference.generate(buildPrompt(input));
+          }
+
+          resultEl.textContent = normalizeOutput(typeof output === "string" ? output : JSON.stringify(output));
+        } catch (error) {
+          resultEl.textContent = `ERROR: ${error?.stack || error?.message || String(error)}`;
+        }
+      }
+
+      main();
+    </script>
+  </body>
+</html>

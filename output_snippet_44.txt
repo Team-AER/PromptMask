@@ -1,0 +1,18 @@
+CROSS-FUNCTIONAL CASE FILE
+Matter: Vendor dispute, employee travel reimbursement review, and account-security follow-up
+Master Reference: CASE-OPS-2026-2194
+
+Prepared for review by:
+[NAME 1]
+Director, Business Operations
+[EMAIL 1]
+[PHONE 1]
+
+Section 1: Background
+This file consolidates notes from a vendor payment dispute, an employee travel reimbursement review, and a security escalation triggered by suspicious access to a shared finance mailbox. The issue began when employee [NAME 2] reported that a reimbursement tied to vendor engagement RFP-2026-117 had not been processed even though the accounting system showed a completed transfer. [NAME 2] works in strategic procurement and submitted his expense package on 2026-02-09 after returning from a conference in Austin, Texas. In his original email, he wrote that all reimbursement notices should go to [EMAIL 2] and, if urgent, that he could be reached at [PHONE 2].
+
+Section 2: Employee reimbursement narrative
+[NAME 2] submitted receipts for airfare, hotel, rideshare, and client meals related to meetings with Redstone Advisory Group. His reimbursement form listed employee ID EMP-44018, corporate card number 4000 1234 5678 9010, card expiry 11/27, and billing zip 10017. The home address on the reimbursement form was 220 East 42nd Street, Apt 14C, New York, NY 10017. [NAME 2] also included an emergency contact section naming his spouse, [NAME 3], with phone number [PHONE 3]. The packet contained his frequent flyer number FF-DELTA-882104 and hotel loyalty account HH-778811. Accounting analyst [NAME 4] noted that these loyalty identifiers should not have been retained in the reimbursement archive after processing.
+
+The travel itinerary showed the following:
+- Departure: New York to Austin on 2026-02

@@ -1,0 +1,141 @@
+<start_of_turn>user
+You are a PII redaction system. Replace any PII in the input with consistently numbered placeholders and return ONLY the redacted text. Keep all non-PII text exactly as-is. Do not add or remove any other words. Do not add headings, labels, explanations, quotes, or tags.
+
+Preserve the original formatting exactly: keep all line breaks, paragraph spacing, bullet points, indentation, list structure, and whitespace. Do not collapse the text into a single line or paragraph or normalize spacing.
+
+Placeholders (use sequential numbering per category, starting at 1):
+- Names -> [NAME 1], [NAME 2], ...
+- Phones -> [PHONE 1], [PHONE 2], ...
+- Emails -> [EMAIL 1], [EMAIL 2], ...
+- Usernames / account handles -> [USERNAME 1], [USERNAME 2], ...
+- Addresses (street, building, floor, city, postal code, full mailing addresses) -> [ADDRESS 1], [ADDRESS 2], ...
+- Dates of birth -> [DATE_OF_BIRTH 1], [DATE_OF_BIRTH 2], ...
+- SSN and government ID numbers (SSN, SIN, TIN/EIN, National ID) -> [SSN 1], [SSN 2], ...
+- PAN (India, e.g., ABCPK1234D) -> [PAN 1], [PAN 2], ...
+- GST / tax registration numbers (e.g., 27ABCDE1234F1Z5) -> [GST 1], [GST 2], ...
+- Driver's license numbers -> [DRIVER_LICENSE 1], [DRIVER_LICENSE 2], ...
+- Bank details -> [BANK_ACCOUNT 1], [BANK_ACCOUNT 2], ...
+- Credit cards -> [CREDIT_CARD 1], [CREDIT_CARD 2], ...
+- Card expiry dates -> [CARD_EXPIRY 1], [CARD_EXPIRY 2], ...
+- Card CVV/CVC -> [CARD_CVV 1], [CARD_CVV 2], ...
+- PayPal details -> [PAYPAL 1], [PAYPAL 2], ...
+- Insurance IDs -> [INSURANCE_ID 1], [INSURANCE_ID 2], ...
+- Medical record numbers (MRN) -> [MRN 1], [MRN 2], ...
+- API keys -> [API_KEY 1], [API_KEY 2], ...
+- Access tokens -> [ACCESS_TOKEN 1], [ACCESS_TOKEN 2], ...
+- IP addresses -> [IP_ADDRESS 1], [IP_ADDRESS 2], ...
+- Device identifiers (e.g., A1B2C3D4E5F6) -> [DEVICE_ID 1], [DEVICE_ID 2], ...
+- Order/transaction IDs -> [ORDER_ID 1], [ORDER_ID 2], ...
+- Invoice IDs (e.g., INV-2026-00173) -> [INVOICE_ID 1], [INVOICE_ID 2], ...
+- Ticket, case, or reference IDs (e.g., TCK-556201, REF-12345) -> [CASE_ID 1], [CASE_ID 2], ...
+
+Numbering rules:
+- Assign each distinct PII value a sequential number within its category, starting at 1.
+- If the same PII value appears again later, reuse the same number.
+- Different PII values in the same category get different numbers.
+- Replace each PII span with exactly one placeholder. Do not split a single name or email into multiple placeholders.
+- Do not invent placeholders. Only replace substrings that are actual PII values present in the input.
+- Do not redact category labels or generic phrases without a concrete identifier (e.g., "bank details", "PAN", "invoice number" with no value).
+- Only redact dates that clearly indicate a date of birth (DOB, "date of birth", "born", "birthday"). Leave other dates/timestamps unchanged.
+- Treat abbreviated names or initials as distinct values unless the text is an exact match (e.g., "Neha Kulkarni" != "Neha K.").
+- Redact full names (first + last) entirely with [NAME N]; do not leave surnames.
+- Redact full street addresses, mailing addresses, and business addresses entirely with a single [ADDRESS N]. This includes building names, floor/unit numbers, street names, localities, cities, states, and postal codes.
+- Redact phone numbers (including country codes) with [PHONE N].
+- Redact emails with [EMAIL N].
+- Redact dates of birth (e.g., "DOB: 1992-08-14") with [DATE_OF_BIRTH N].
+- Redact usernames/account handles (e.g., "neha.kulkarni91") with [USERNAME N].
+- Remove all digits of SSNs and government IDs. Replace the full identifier with [SSN N] (keep the label if present).
+- Redact GST/tax-registration numbers (e.g., 27ABCDE1234F1Z5) with [GST N].
+- Redact device identifiers (e.g., hardware IDs like A1B2C3D4E5F6) with [DEVICE_ID N].
+- Redact invoice numbers (e.g., INV-2026-00173) with [INVOICE_ID N].
+- Redact ticket/case/reference IDs (e.g., TCK-556201) with [CASE_ID N].
+
+Examples:
+Input: Payroll setup for Sam — SSN: 123-45-6789 (dummy).
+Output: Payroll setup for [NAME 1] — SSN: [SSN 1] (dummy).
+Input: Tax ID 12-3456789 or SIN 123-456-789.
+Output: Tax ID [SSN 1] or SIN [SSN 2].
+Input: Hi, I'm Priya Nair. Please update my address to 14B, Lakeview Apartments, 3rd Cross, Indiranagar, Bengaluru 560038. You can reach me at +91 98765 43210 or priya.nair17@example.com. DOB: 1992-08-14.
+Output: Hi, I'm [NAME 1]. Please update my address to [ADDRESS 1]. You can reach me at [PHONE 1] or [EMAIL 1]. [DATE_OF_BIRTH 1].
+Input: Invoice INV-2026-00173 for case TCK-556201.
+Ship to: Wellness Clinic, 2nd Floor, 18 Baner Road, Pune 411045.
+Output: Invoice [INVOICE_ID 1] for case [CASE_ID 1].
+Ship to: [ADDRESS 1].
+Input: Neha Kulkarni (Neha K.) approved the request.
+Output: [NAME 1] ([NAME 2]) approved the request.
+Input: From: Neha Kulkarni neha.kulkarni+support@example.com
+To: security@kwc.example.com
+Date: 2026-01-13
+Subject: Re: Case TCK-556201 — request for redacted logs
+Output: From: [NAME 1] [EMAIL 1]
+To: [EMAIL 2]
+Date: 2026-01-13
+Subject: Re: Case [CASE_ID 1] — request for redacted logs
+Input: Account username is neha.kulkarni91. Please remove bank details if present.
+Output: Account username is [USERNAME 1]. Please remove bank details if present.
+Input: Alice emailed Bob at bob@x.com. Alice's SSN is 111-22-3333 and Bob's is 444-55-6666.
+Output: [NAME 1] emailed [NAME 2] at [EMAIL 1]. [NAME 1]'s SSN is [SSN 1] and [NAME 2]'s is [SSN 2].
+
+
+INPUT:
+INTERNAL AUDIT PACKET
+Subject: Review of access-control exception for third-party maintenance contractor
+Reference ID: AUD-2026-SEC-1182
+
+Prepared by:
+Elena Rodriguez
+Senior Security Analyst
+elena.rodriguez@solsticeinfra.com
++1 (415) 555-0618
+
+Executive summary:
+This packet summarizes the internal review of a temporary access-control exception approved for third-party maintenance contractor Ravi Patel on 2026-01-11. The exception allowed Ravi Patel to retrieve archived router configurations from a restricted support environment after a storage appliance sync failure. The request was initiated by infrastructure manager Monica Hale and approved verbally during an outage bridge. The review was opened after audit tooling detected multiple downloads of configuration bundles associated with customer environments in Chicago, Toronto, and Phoenix.
+
+Contractor details:
+Name: Ravi Patel
+Vendor employer: Apex Field Services
+Contractor ID: C-88412
+Email: ravi.patel@apexfieldservices.com
+Phone: +1 (602) 555-0734
+Driver's license on file: D400-5551-8824
+Badge serial: BADGE-77319
+Temporary hotel address during assignment: 150 North Riverside Plaza, Room 1812, Chicago, IL 60606
+
+Scope of review:
+The review covered all tickets created between 2026-01-10 and 2026-01-14 that referenced storage synchronization, key rotation, customer export, or remote archive restore. Primary related tickets were TCK-601882, TCK-601945, and TCK-602011. A linked customer escalation, CASE-CHI-44811, alleged that configuration archives may have contained contact rosters with names, emails, phone numbers, and network diagrams. Another linked legal hold request was recorded as LEG-2026-77-A.
+
+Timeline:
+On 2026-01-10 at 22:14 UTC, monitoring alert MON-448800 reported stalled synchronization for the Chicago archive cluster. At 22:32 UTC, Monica Hale emailed elena.rodriguez@solsticeinfra.com and copied ravi.patel@apexfieldservices.com requesting approval for after-hours remediation. At 22:41 UTC, outage bridge notes recorded Ravi Patel's callback number as +1 (602) 555-0734 and identified his assigned bastion host as bastion-chi-07 with public IP 34.118.200.14. At 22:57 UTC, Ravi authenticated to the maintenance gateway from 73.184.22.91. At 23:08 UTC, logs show three configuration archive downloads from bucket path customer-archive/chicago/core-edge and one download from customer-archive/phoenix/wan-failover.
+
+Findings:
+1. The exception request lacked written scope limitation. The approval did not specify which customer folders were permitted.
+2. The contractor used a shared service account rather than a named least-privilege account. The account identifier was svc_archive_restore and the token rotation record referenced ACCESS-ROT-2026-00411.
+3. One archive package contained a support contact sheet listing the following records:
+   - Daniel Harper, daniel.harper@northstar-logistics.com, +1 (312) 555-0184
+   - Alicia Gomez, alicia.gomez@northstar-logistics.com, +1 (312) 555-0185
+   - Priya Menon, priya.menon@solsticeinfra.com, +1 (415) 555-0622
+4. A second archive package contained deployment notes with device identifiers C9D8E7F6A5B4 and H1J2K3L4M5N6, plus internal support IP ranges including 10.44.8.17 and 10.44.8.18.
+
+Customer and billing metadata observed in archives:
+Customer: Northstar Logistics LLC
+Mailing address: 480 West Fulton Market, Suite 900, Chicago, IL 60661
+Finance contact: billing@northstar-logistics.com
+Account number: ACCT-556204
+Order reference: ORD-2026-77831
+Invoice reference: INV-2026-01487
+Tax ID on contract copy: 36-4129088
+
+Interview notes:
+Ravi Patel stated that he believed Monica Hale's approval extended to all archived files under the affected project prefixes. Monica Hale stated that she intended for him to access only router-state snapshots and not customer administration documents. Elena Rodriguez interviewed systems engineer Jacob Stein, who said he verbally warned the bridge that account rosters were mixed into the archive set after a prior packaging bug. Jacob Stein can be reached at jacob.stein@solsticeinfra.com and +1 (415) 555-0671.
+
+Corrective actions:
+- Replace shared service account access with named contractor credentials.
+- Backfill written approvals for emergency exceptions under AUD-2026-SEC-1182.
+- Notify legal and privacy teams if customer contact sheets were accessed outside authorized scope.
+- Rotate any tokens associated with svc_archive_restore and incident reference ACCESS-ROT-2026-00411.
+- Update packaging rules so account rosters, invoice copies, and contact directories are excluded from router-recovery bundles.
+
+Distribution:
+This packet is limited to Elena Rodriguez, Monica Hale, legal counsel Aaron Fisher, and privacy officer Sonia Desai. External circulation is prohibited without written approval.
+<end_of_turn>
+<start_of_turn>model

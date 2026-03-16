@@ -558,3 +558,188 @@ Financial Aid:
   Routing #: 011500120
 
 Advisor: Prof. Rebecca Liu, rebecca.liu@university.edu
+
+==============================================================
+TEST SNIPPET 41: Long-form support escalation thread (approx. 350 words)
+==============================================================
+SUPPORT ESCALATION SUMMARY
+
+Case Owner: Priya Menon
+Primary Customer Contact: Daniel Harper
+Case ID: ESC-2026-04119
+Related Ticket: TCK-882104
+Invoice Reference: INV-2026-01487
+
+Summary:
+Daniel Harper contacted support on March 2 to report that a billing alert was being sent to the wrong destination after his team migrated to a new shared mailbox. He stated that the notices were still going to daniel.harper@northstar-logistics.com even though the account owner requested a change to billing@northstar-logistics.com on February 27. During the verification call, Daniel confirmed that he could also be reached directly at +1 (312) 555-0184 if our billing operations team needed to validate changes verbally. He asked that all follow-up correspondence include his operations manager, Alicia Gomez, at alicia.gomez@northstar-logistics.com.
+
+During the investigation, support agent Nisha Rao reviewed the account and found that the legal billing profile was still linked to the original contract owner. The account was registered to Northstar Logistics LLC, 480 West Fulton Market, Suite 900, Chicago, IL 60661, United States. The record also listed a backup contact, Daniel Harper, 1217 North Greenview Avenue, Chicago, IL 60642, which Daniel said should not appear on future invoices. The customer mentioned that the finance team was preparing for year-end reconciliation and needed corrected records before March 15.
+
+Billing notes:
+- Account number: ACCT-556204
+- Order number: ORD-2026-77831
+- Prior disputed invoice: INV-2025-11840
+- Tax registration on file: 36-4129088
+- Payment card last used: 4111 1111 1111 1111
+- Card expiry shown in CRM: 08/27
+
+Internal actions taken:
+1. Confirmed Daniel Harper's identity using email and callback verification.
+2. Updated contact routing from daniel.harper@northstar-logistics.com to billing@northstar-logistics.com.
+3. Logged secondary reviewer Alicia Gomez for audit visibility.
+4. Added note that any future outbound invoice must reference Case ID ESC-2026-04119.
+
+Customer callback summary:
+Daniel Harper said the corrected contact data should also be reflected in the quarterly compliance packet. He requested that no sensitive notices be sent to his personal device again after an old SMS alert reached +1 (773) 555-0199. He asked for written confirmation once the case was resolved.
+
+==============================================================
+TEST SNIPPET 42: Long-form healthcare coordination note (approx. 500 words)
+==============================================================
+CARE COORDINATION FOLLOW-UP NOTE
+
+Patient Name: Lakshmi Narayanan
+MRN: MRN-77210458
+Insurance ID: AET-HMO-8842107
+DOB: 1961-11-24
+Primary Phone: +1 (408) 555-0441
+Home Address: 724 Willow Glen Lane, San Jose, CA 95125
+
+Background:
+Lakshmi Narayanan was referred to care coordination after discharge from Bay Valley Medical Center on 2026-02-18 following treatment for congestive heart failure exacerbation and poorly controlled type 2 diabetes. The inpatient attending, Dr. Melissa Chen, requested close outpatient follow-up because Lakshmi reported difficulty understanding medication timing and had missed two prior cardiology appointments. At the time of discharge, the patient stated she lives with her husband, Ramesh Narayanan, at 724 Willow Glen Lane, San Jose, CA 95125, and prefers reminder calls in the late afternoon. She confirmed that her daughter, Kavya Narayanan, may be contacted at kavya.narayanan@gmail.com for scheduling support.
+
+Medication reconciliation:
+The discharge packet listed furosemide 40 mg daily, lisinopril 10 mg daily, metformin 1000 mg twice daily, and insulin glargine 18 units nightly. During the post-discharge call, Lakshmi said that she had been taking the nighttime insulin only every other day because she was worried about overnight hypoglycemia. She also reported that the pharmacy had requested a prior authorization under Insurance ID AET-HMO-8842107 and subscriber number SUB-CC-44192. The patient said the retail pharmacy on file was Willow Glen Pharmacy, 1300 Lincoln Avenue, San Jose, CA 95125, and that she usually picked up prescriptions using a family debit card ending in 2241.
+
+Follow-up events:
+On 2026-02-20, nurse coordinator Anita Joseph called Lakshmi Narayanan at +1 (408) 555-0441 and reviewed red-flag symptoms including rapid weight gain, worsening dyspnea, and lower-extremity swelling. Lakshmi reported mild ankle swelling but denied chest pain. Anita then contacted the cardiology clinic and scheduled an appointment with Dr. Aaron Patel for 2026-02-26 at 10:30 AM. A separate endocrinology visit with Dr. Hannah Brooks was scheduled for 2026-03-03. Appointment confirmations were emailed to lakshmi.narayanan@comcast.net and copied to kavya.narayanan@gmail.com per patient request.
+
+Social and administrative notes:
+The patient said she receives transportation support from her son, Arjun Narayanan, whose phone number is +1 (650) 555-0452. She asked that billing statements not be mailed to their old residence at 18 Brighton Court, Fremont, CA 94536, because the family moved last year. She also clarified that her former employer insurance ended on 2025-12-31 and her current coverage was under Ramesh Narayanan's employer group, Group ID EMP-TECH-90871. During registration review, the coordinator found an outdated emergency contact listing "Lakshmi N." with a disconnected number and replaced it with Ramesh Narayanan, +1 (408) 555-0443.
+
+Plan:
+- Confirm prior authorization approval and notify patient.
+- Reinforce insulin instructions at next check-in.
+- Send updated summary to primary care physician Dr. Melissa Chen.
+- Ensure all future correspondence references MRN-77210458 and not the old clinic chart number CHART-2018-9904.
+
+==============================================================
+TEST SNIPPET 43: Long-form internal audit and incident packet (approx. 700 words)
+==============================================================
+INTERNAL AUDIT PACKET
+Subject: Review of access-control exception for third-party maintenance contractor
+Reference ID: AUD-2026-SEC-1182
+
+Prepared by:
+Elena Rodriguez
+Senior Security Analyst
+elena.rodriguez@solsticeinfra.com
++1 (415) 555-0618
+
+Executive summary:
+This packet summarizes the internal review of a temporary access-control exception approved for third-party maintenance contractor Ravi Patel on 2026-01-11. The exception allowed Ravi Patel to retrieve archived router configurations from a restricted support environment after a storage appliance sync failure. The request was initiated by infrastructure manager Monica Hale and approved verbally during an outage bridge. The review was opened after audit tooling detected multiple downloads of configuration bundles associated with customer environments in Chicago, Toronto, and Phoenix.
+
+Contractor details:
+Name: Ravi Patel
+Vendor employer: Apex Field Services
+Contractor ID: C-88412
+Email: ravi.patel@apexfieldservices.com
+Phone: +1 (602) 555-0734
+Driver's license on file: D400-5551-8824
+Badge serial: BADGE-77319
+Temporary hotel address during assignment: 150 North Riverside Plaza, Room 1812, Chicago, IL 60606
+
+Scope of review:
+The review covered all tickets created between 2026-01-10 and 2026-01-14 that referenced storage synchronization, key rotation, customer export, or remote archive restore. Primary related tickets were TCK-601882, TCK-601945, and TCK-602011. A linked customer escalation, CASE-CHI-44811, alleged that configuration archives may have contained contact rosters with names, emails, phone numbers, and network diagrams. Another linked legal hold request was recorded as LEG-2026-77-A.
+
+Timeline:
+On 2026-01-10 at 22:14 UTC, monitoring alert MON-448800 reported stalled synchronization for the Chicago archive cluster. At 22:32 UTC, Monica Hale emailed elena.rodriguez@solsticeinfra.com and copied ravi.patel@apexfieldservices.com requesting approval for after-hours remediation. At 22:41 UTC, outage bridge notes recorded Ravi Patel's callback number as +1 (602) 555-0734 and identified his assigned bastion host as bastion-chi-07 with public IP 34.118.200.14. At 22:57 UTC, Ravi authenticated to the maintenance gateway from 73.184.22.91. At 23:08 UTC, logs show three configuration archive downloads from bucket path customer-archive/chicago/core-edge and one download from customer-archive/phoenix/wan-failover.
+
+Findings:
+1. The exception request lacked written scope limitation. The approval did not specify which customer folders were permitted.
+2. The contractor used a shared service account rather than a named least-privilege account. The account identifier was svc_archive_restore and the token rotation record referenced ACCESS-ROT-2026-00411.
+3. One archive package contained a support contact sheet listing the following records:
+   - Daniel Harper, daniel.harper@northstar-logistics.com, +1 (312) 555-0184
+   - Alicia Gomez, alicia.gomez@northstar-logistics.com, +1 (312) 555-0185
+   - Priya Menon, priya.menon@solsticeinfra.com, +1 (415) 555-0622
+4. A second archive package contained deployment notes with device identifiers C9D8E7F6A5B4 and H1J2K3L4M5N6, plus internal support IP ranges including 10.44.8.17 and 10.44.8.18.
+
+Customer and billing metadata observed in archives:
+Customer: Northstar Logistics LLC
+Mailing address: 480 West Fulton Market, Suite 900, Chicago, IL 60661
+Finance contact: billing@northstar-logistics.com
+Account number: ACCT-556204
+Order reference: ORD-2026-77831
+Invoice reference: INV-2026-01487
+Tax ID on contract copy: 36-4129088
+
+Interview notes:
+Ravi Patel stated that he believed Monica Hale's approval extended to all archived files under the affected project prefixes. Monica Hale stated that she intended for him to access only router-state snapshots and not customer administration documents. Elena Rodriguez interviewed systems engineer Jacob Stein, who said he verbally warned the bridge that account rosters were mixed into the archive set after a prior packaging bug. Jacob Stein can be reached at jacob.stein@solsticeinfra.com and +1 (415) 555-0671.
+
+Corrective actions:
+- Replace shared service account access with named contractor credentials.
+- Backfill written approvals for emergency exceptions under AUD-2026-SEC-1182.
+- Notify legal and privacy teams if customer contact sheets were accessed outside authorized scope.
+- Rotate any tokens associated with svc_archive_restore and incident reference ACCESS-ROT-2026-00411.
+- Update packaging rules so account rosters, invoice copies, and contact directories are excluded from router-recovery bundles.
+
+Distribution:
+This packet is limited to Elena Rodriguez, Monica Hale, legal counsel Aaron Fisher, and privacy officer Sonia Desai. External circulation is prohibited without written approval.
+
+==============================================================
+TEST SNIPPET 44: Long-form cross-functional case file with mixed business, finance, HR, and travel data (approx. 950 words)
+==============================================================
+CROSS-FUNCTIONAL CASE FILE
+Matter: Vendor dispute, employee travel reimbursement review, and account-security follow-up
+Master Reference: CASE-OPS-2026-2194
+
+Prepared for review by:
+Anita Verma
+Director, Business Operations
+anita.verma@brightpathsystems.com
++1 (646) 555-0822
+
+Section 1: Background
+This file consolidates notes from a vendor payment dispute, an employee travel reimbursement review, and a security escalation triggered by suspicious access to a shared finance mailbox. The issue began when employee Marcus Hill reported that a reimbursement tied to vendor engagement RFP-2026-117 had not been processed even though the accounting system showed a completed transfer. Marcus Hill works in strategic procurement and submitted his expense package on 2026-02-09 after returning from a conference in Austin, Texas. In his original email, he wrote that all reimbursement notices should go to marcus.hill@brightpathsystems.com and, if urgent, that he could be reached at +1 (917) 555-0931.
+
+Section 2: Employee reimbursement narrative
+Marcus Hill submitted receipts for airfare, hotel, rideshare, and client meals related to meetings with Redstone Advisory Group. His reimbursement form listed employee ID EMP-44018, corporate card number 4000 1234 5678 9010, card expiry 11/27, and billing zip 10017. The home address on the reimbursement form was 220 East 42nd Street, Apt 14C, New York, NY 10017. Marcus also included an emergency contact section naming his spouse, Lena Hill, with phone number +1 (917) 555-0932. The packet contained his frequent flyer number FF-DELTA-882104 and hotel loyalty account HH-778811. Accounting analyst Sarah Lin noted that these loyalty identifiers should not have been retained in the reimbursement archive after processing.
+
+The travel itinerary showed the following:
+- Departure: New York to Austin on 2026-02-03
+- Hotel: Congress Avenue Suites, 311 East 5th Street, Austin, TX 78701
+- Conference badge name: Marcus Hill
+- Vendor dinner attendees: Marcus Hill, Anita Verma, Derek Coleman, and vendor representative Julia Reyes
+- Shared rides arranged through the corporate travel desk
+
+Section 3: Vendor payment dispute
+At the same time, vendor Redstone Advisory Group disputed a missing payment for invoice INV-2026-02118 related to statement of work SOW-7782-A. Their finance manager, Julia Reyes, emailed ar@brightpathsystems.com and copied marcus.hill@brightpathsystems.com, saying the remittance advice referenced order ORD-2026-55081 but no funds had appeared in the vendor bank account. During a follow-up call, Julia Reyes confirmed her email as julia.reyes@redstoneadvisory.com and her callback number as +1 (512) 555-0678. She said the vendor mailing address on the contract was 901 Brazos Street, Suite 420, Austin, TX 78701.
+
+Accounts payable searched the ledger and found a transfer attempt that used beneficiary account number 998877665544 and routing number 021000021 under vendor profile VEN-RED-2041. The payment record also showed a tax identification number of 74-2988172 and a remittance contact labeled Julia Reyes. A duplicate vendor profile had been created months earlier under the name Redstone Advisory LLC with an alternate contact of finance@redstoneadvisory.com and a stale case note referencing ticket TCK-771204. The system automatically attached both profiles to the same reconciliation packet, which increased the risk of misdirected payment data.
+
+Section 4: Security escalation
+On 2026-02-11, IT security flagged an anomalous login to the shared mailbox ar@brightpathsystems.com from IP address 185.220.101.44 using a browser session that did not match prior patterns. The mailbox owner of record was Sarah Lin, but the sign-in logs also showed a successful OAuth token refresh associated with service account acct-automation@brightpathsystems.com. Security engineer Omar Siddiqui recorded the event under incident SEC-2026-0908 and noted that the actor viewed threads containing invoice INV-2026-02118, reimbursement backup documents for Marcus Hill, and a payroll export folder accidentally attached to a prior email draft.
+
+That payroll export included:
+- Marcus Hill, SSN 456-77-8899, DOB 1991-04-18, annual salary $148,000
+- Sarah Lin, SSN 333-22-1111, DOB 1989-09-07, annual salary $121,000
+- Derek Coleman, SSN 222-44-6666, DOB 1985-02-13, annual salary $167,500
+
+Omar Siddiqui also found that an internal troubleshooting attachment contained the following:
+- Device ID: D7E8F9G0H1J2
+- Endpoint serial: MBP-OPS-7718
+- Temporary API key: sk-live-xyz123abc456def789ghi012jkl345mno678
+- Access token: ghp_ZyX9876543210AbCdEfGhIjKlMnOpQrStUv
+
+Section 5: HR and compliance implications
+HR business partner Nina Alvarez reviewed the reimbursement packet because it included personally sensitive data unrelated to travel reimbursement. She noted that employee date-of-birth fields, emergency contacts, and home address lines should have been removed before the packet was copied into the vendor dispute folder. Nina Alvarez's contact details in the case file were nina.alvarez@brightpathsystems.com and +1 (646) 555-0845. She also confirmed that Marcus Hill's direct deposit record in the HRIS used bank account 556677889900 and routing number 026009593, which should never have been attached to any operations case.
+
+Section 6: Actions and open items
+1. Confirm whether vendor Redstone Advisory Group wants future remittance notices sent to julia.reyes@redstoneadvisory.com or finance@redstoneadvisory.com.
+2. Remove Marcus Hill's home address, emergency contact, and card details from all reimbursement archives not strictly required for tax retention.
+3. Reissue invoice confirmation for INV-2026-02118 and order ORD-2026-55081 under the correct vendor profile.
+4. Reset tokens associated with acct-automation@brightpathsystems.com and incident SEC-2026-0908.
+5. Notify privacy counsel if the payroll export containing SSNs and DOBs was exposed outside the authorized mailbox workflow.
+6. Preserve evidence under legal hold HOLD-2026-BPS-44 and ensure future correspondence cites CASE-OPS-2026-2194.
+
+Section 7: Distribution note
+This case file may be shared only with Anita Verma, Omar Siddiqui, Nina Alvarez, Marcus Hill's manager Rebecca Shaw, and outside counsel if required. No version of this document should be forwarded to vendors without redaction of employee, payroll, banking, reimbursement, and token data.

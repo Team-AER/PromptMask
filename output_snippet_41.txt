@@ -1,0 +1,29 @@
+SUPPORT ESCALATION SUMMARY
+
+Case Owner: [NAME 1]
+Primary Customer Contact: [NAME 2]
+Case ID: ESC-2026-04119
+Related Ticket: TCK-882104
+Invoice Reference: INV-2026-01487
+
+Summary:
+[NAME 2] contacted support on March 2 to report that a billing alert was being sent to the wrong destination after his team migrated to a new shared mailbox. He stated that the notices were still going to [EMAIL 1] even though the account owner requested a change to [EMAIL 2] on February 27. During the verification call, [NAME 2] confirmed that he could also be reached directly at [PHONE 1] if our billing operations team needed to validate changes verbally. He asked that all follow-up correspondence include his operations manager, [NAME 3], at [EMAIL 3].
+
+During the investigation, support agent [NAME 4] reviewed the account and found that the legal billing profile was still linked to the original contract owner. The account was registered to Northstar Logistics LLC, [ADDRESS 1], Chicago, IL 60661, United States. The record also listed a backup contact, [NAME 2], [ADDRESS 2], which [NAME 2] said should not appear on future invoices. The customer mentioned that the finance team was preparing for year-end reconciliation and needed corrected records before March 15.
+
+Billing notes:
+- Account number: ACCT-556204
+- Order number: ORD-2026-77831
+- Prior disputed invoice: INV-2025-11840
+- Tax registration on file: [GST 1]
+- Payment card last used: [CREDIT_CARD 1]
+- Card expiry shown in CRM: 08/27
+
+Internal actions taken:
+1. Confirmed [NAME 2]'s identity using email and callback verification.
+2. Updated contact routing from [EMAIL 1] to [EMAIL 2].
+3. Logged secondary reviewer [NAME 3] for audit visibility.
+4. Added note that any future outbound invoice must reference Case ID ESC-2026-04119.
+
+Customer callback summary:
+[NAME 2] said the corrected contact data should also be reflected in the quarterly compliance packet. He requested that no sensitive notices be sent to his personal device again after an old SMS alert reached [PHONE 2]. He asked for written confirmation once the case was resolved.

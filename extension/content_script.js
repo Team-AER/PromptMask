@@ -159,6 +159,19 @@ function getComposerText(el) {
   return el.innerText || el.textContent || "";
 }
 
+function isContentEditableComposer(el) {
+  if (!(el instanceof HTMLElement)) {
+    return false;
+  }
+  if (el.isContentEditable) {
+    return true;
+  }
+
+  const busySnapshot = busyState.get(el);
+  const previousValue = busySnapshot?.contentEditable;
+  return previousValue === "true" || previousValue === "plaintext-only";
+}
+
 function isEditableComposerElement(el) {
   if (!(el instanceof HTMLElement)) {
     return false;
@@ -169,7 +182,7 @@ function isEditableComposerElement(el) {
   if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
     return el.type !== "hidden" && !el.disabled && !el.readOnly;
   }
-  return el.isContentEditable || el.getAttribute("role") === "textbox";
+  return isContentEditableComposer(el) || el.getAttribute("role") === "textbox";
 }
 
 function rememberComposer(el) {
@@ -277,6 +290,68 @@ function hideSpinner() {
   }
 }
 
+function dispatchComposerInput(el, value) {
+  try {
+    el.dispatchEvent(
+      new InputEvent("input", { bubbles: true, composed: true, inputType: "insertText", data: value })
+    );
+  } catch {
+    el.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+  }
+}
+
+function insertPlainTextWithLineBreaks(range, value) {
+  const fragment = document.createDocumentFragment();
+  const lines = String(value).split("\n");
+  lines.forEach((line, index) => {
+    fragment.appendChild(document.createTextNode(line));
+    if (index < lines.length - 1) {
+      fragment.appendChild(document.createElement("br"));
+    }
+  });
+  range.insertNode(fragment);
+}
+
+function placeCaretAtEnd(el) {
+  try {
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+  } catch {
+    // Ignore caret placement failures.
+  }
+}
+
+function setContentEditableComposerText(el, value) {
+  el.focus();
+
+  const selection = window.getSelection();
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  selection?.removeAllRanges();
+  selection?.addRange(range);
+
+  if (typeof document.execCommand === "function") {
+    try {
+      document.execCommand("insertText", false, value);
+    } catch {
+      // Fall through to DOM replacement when execCommand is blocked.
+    }
+  }
+
+  if (!composerReflectsValue(el, value)) {
+    range.selectNodeContents(el);
+    range.deleteContents();
+    insertPlainTextWithLineBreaks(range, value);
+    placeCaretAtEnd(el);
+  }
+
+  dispatchComposerInput(el, value);
+}
+
 function setComposerText(el, value) {
   if (!el) {
     return;
@@ -290,41 +365,30 @@ function setComposerText(el, value) {
     } else {
       el.value = value;
     }
-    try {
-      el.dispatchEvent(
-        new InputEvent("input", { bubbles: true, composed: true, inputType: "insertText", data: value })
-      );
-    } catch {
-      el.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
-    }
+    dispatchComposerInput(el, value);
     el.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
     return;
   }
 
-  if (el.isContentEditable) {
-    el.focus();
-    try {
-      const selection = window.getSelection();
-      const range = document.createRange();
-      range.selectNodeContents(el);
-      selection?.removeAllRanges();
-      selection?.addRange(range);
-      if (document.execCommand) {
-        document.execCommand("insertText", false, value);
-      }
-    } catch {
-      // Some editors block selection mutation; fallback to direct text replacement.
-    }
+  if (isContentEditableComposer(el)) {
+    setContentEditableComposerText(el, value);
+    return;
   }
 
   el.textContent = value;
-  try {
-    el.dispatchEvent(
-      new InputEvent("input", { bubbles: true, composed: true, inputType: "insertText", data: value })
-    );
-  } catch {
-    el.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+  dispatchComposerInput(el, value);
+}
+
+async function applyComposerText(composer, value) {
+  setComposerText(composer, value);
+  await waitForUiUpdate();
+  if (composerReflectsValue(composer, value)) {
+    return true;
   }
+
+  setComposerText(composer, value);
+  await waitForUiUpdate();
+  return composerReflectsValue(composer, value);
 }
 
 function sendMessage(payload) {
@@ -721,7 +785,7 @@ function setBusy(composer, sendButton, busy) {
     }
     composer.style.pointerEvents = "none";
     composer.style.opacity = "0.7";
-    if (composer.isContentEditable) {
+    if (isContentEditableComposer(composer)) {
       composer.setAttribute("contenteditable", "false");
     } else if ("readOnly" in composer) {
       composer.readOnly = true;
@@ -911,16 +975,10 @@ async function redactAndPreview({ composer, sendButton }) {
       throw new Error("Redaction output looks incomplete.");
     }
     suppressInputReset = true;
-    if (redacted && redacted.trim()) {
-      setComposerText(composer, redacted);
-    } else {
-      setComposerText(composer, originalText);
-    }
-    await waitForUiUpdate();
     const expectedText = redacted && redacted.trim() ? redacted : originalText;
-    if (!composerReflectsValue(composer, expectedText)) {
-      setComposerText(composer, expectedText);
-      await waitForUiUpdate();
+    const writeSucceeded = await applyComposerText(composer, expectedText);
+    if (!writeSucceeded) {
+      throw new Error("Could not update the message editor with the redacted text.");
     }
 
     enterPreview();

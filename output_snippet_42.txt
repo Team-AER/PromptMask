@@ -1,0 +1,26 @@
+CARE COORDINATION FOLLOW-UP NOTE
+
+Patient Name: [NAME 1]
+MRN: [MRN 1]
+Insurance ID: [INSURANCE_ID 1]
+DOB: [DATE_OF_BIRTH 1]
+Primary Phone: [PHONE 1]
+Home Address: [ADDRESS 1]
+
+Background:
+[NAME 1] was referred to care coordination after discharge from Bay Valley Medical Center on 2026-02-18 following treatment for congestive heart failure exacerbation and poorly controlled type 2 diabetes. The inpatient attending, Dr. Melissa Chen, requested close outpatient follow-up because [NAME 1] reported difficulty understanding medication timing and had missed two prior cardiology appointments. At the time of discharge, the patient stated she lives with her husband, [NAME 2], at [ADDRESS 1], and prefers reminder calls in the late afternoon. She confirmed that her daughter, [NAME 3], may be contacted at [EMAIL 1] for scheduling support.
+
+Medication reconciliation:
+The discharge packet listed furosemide 40 mg daily, lisinopril 10 mg daily, metformin 1000 mg twice daily, and insulin glargine 18 units nightly. During the post-discharge call, [NAME 1] said that she had been taking the nighttime insulin only every other day because she was worried about overnight hypoglycemia. She also reported that the pharmacy had requested a prior authorization under Insurance ID [INSURANCE_ID 1] and subscriber number SUB-CC-44192. The patient said the retail pharmacy on file was Willow Glen Pharmacy, [ADDRESS 2], and that she usually picked up prescriptions using a family debit card ending in [CARD_CVV 1].
+
+Follow-up events:
+On 2026-02-20, nurse coordinator Anita Joseph called [NAME 1] at [PHONE 1] and reviewed red-flag symptoms including rapid weight gain, worsening dyspnea, and lower-extremity swelling. [NAME 1] reported mild ankle swelling but denied chest pain. Anita then contacted the cardiology clinic and scheduled an appointment with Dr. Aaron Patel for 2026-02-26 at 10:30 AM. A separate endocrinology visit with Dr. Hannah Brooks was scheduled for 2026-03-03. Appointment confirmations were emailed to [EMAIL 2] and copied to [EMAIL 3] per patient request.
+
+Social and administrative notes:
+[NAME 1] said she receives transportation support from her son, [NAME 4], whose phone number is [PHONE 2]. She asked that billing statements not be mailed to their old residence at [ADDRESS 3], because the family moved last year. She also clarified that her former employer insurance ended on 2025-12-31 and her current coverage was under [NAME 2]'s employer group, Group ID EMP-TECH-90871. During registration review, the coordinator found an outdated emergency contact listing "Lakshmi N." with a disconnected number and replaced it with [NAME 4], [PHONE 2].
+
+Plan:
+- Confirm prior authorization approval and notify patient.
+- Reinforce insulin instructions at next check-in.
+- Send updated summary to primary care physician Dr. Melissa Chen.
+- Ensure all future correspondence references MRN-[MRN 1] and not the old clinic chart number CHART-2018-9904.
