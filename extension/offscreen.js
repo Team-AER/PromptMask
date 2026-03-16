@@ -1,51 +1,39 @@
 import { FilesetResolver, LlmInference } from "./lib/genai_bundle.mjs";
 import { buildPrompt, normalizeOutput } from "./offscreen_utils.mjs";
+import { MODEL_DOWNLOAD_URL, getModelAssetReader } from "./model_cache.mjs";
 
-const MODEL_URLS = [
-  "http://127.0.0.1:8000/models/gemma-3n-E2B-it-int4-Web.litertlm",
-  "http://localhost:8000/models/gemma-3n-E2B-it-int4-Web.litertlm"
-];
 const WASM_URL = chrome.runtime.getURL("lib/wasm");
 const MAX_TOKENS = 4096;
 
 let llmInferencePromise;
 let llmInferenceInstance;
-const RESET_MODEL_EACH_REQUEST = true;
+const RESET_MODEL_EACH_REQUEST = false;
 let inferenceQueue = Promise.resolve();
 
 async function initModel() {
   if (!llmInferencePromise) {
     llmInferencePromise = (async () => {
-      const filesetResolver = await FilesetResolver.forGenAiTasks(WASM_URL);
-      let lastError;
-
-      for (const modelUrl of MODEL_URLS) {
-        try {
-          console.info("[Gemma Redaction] Initializing model from:", modelUrl);
-          const instance = await LlmInference.createFromOptions(filesetResolver, {
-            baseOptions: {
-              modelAssetPath: modelUrl
-            },
-            maxTokens: MAX_TOKENS,
-            temperature: 0,
-            topK: 1,
-            randomSeed: 1
-          });
-          console.info("[Gemma Redaction] Model ready:", modelUrl);
-          llmInferenceInstance = instance;
-          return instance;
-        } catch (err) {
-          lastError = err;
-          console.warn("[Gemma Redaction] Model init failed for URL:", modelUrl, err);
-        }
+      try {
+        const filesetResolver = await FilesetResolver.forGenAiTasks(WASM_URL);
+        console.info("[Gemma Redaction] Initializing cached model stream from:", MODEL_DOWNLOAD_URL);
+        const modelAssetReader = await getModelAssetReader();
+        const instance = await LlmInference.createFromOptions(filesetResolver, {
+          baseOptions: {
+            modelAssetBuffer: modelAssetReader
+          },
+          maxTokens: MAX_TOKENS,
+          temperature: 0,
+          topK: 1,
+          randomSeed: 1
+        });
+        console.info("[Gemma Redaction] Model ready.");
+        llmInferenceInstance = instance;
+        return instance;
+      } catch (error) {
+        llmInferencePromise = null;
+        llmInferenceInstance = null;
+        throw error;
       }
-
-      throw (
-        lastError ??
-        new Error(
-          `Failed to load model from all URLs: ${MODEL_URLS.join(", ")}`
-        )
-      );
     })();
   }
   return llmInferencePromise;

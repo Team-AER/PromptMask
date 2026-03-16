@@ -3,10 +3,10 @@
   "name": "PromptMask",
   "version": "0.1.0",
   "description": "Run Gemma 3n WebGPU inference offscreen with MediaPipe.",
-  "permissions": ["offscreen", "scripting", "storage"],
+  "permissions": ["offscreen", "scripting", "storage", "unlimitedStorage"],
   "host_permissions": [
-    "http://127.0.0.1:8000/*",
-    "http://localhost:8000/*",
+    "https://huggingface.co/*",
+    "https://*.hf.co/*",
     "https://chatgpt.com/*",
     "https://chat.openai.com/*",
     "https://gemini.google.com/*",
@@ -45,6 +45,6 @@
     }
   ],
   "content_security_policy": {
-    "extension_pages": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' http://127.0.0.1:8000 http://localhost:8000;"
+    "extension_pages": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' https://huggingface.co https://*.hf.co;"
   }
 }

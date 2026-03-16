@@ -1,3 +1,5 @@
+import { MODEL_STATE_KEY, describeModelState, normalizeModelState } from "./model_cache.mjs";
+
 const STORAGE_KEY = "promptmask_settings_v1";
 
 const SITE_TOGGLE_IDS = {
@@ -39,6 +41,8 @@ const DEFAULT_SETTINGS = {
 
 const statusEl = document.getElementById("status");
 const activePillEl = document.getElementById("active-pill");
+const modelSummaryEl = document.getElementById("model-summary");
+const modelDetailEl = document.getElementById("model-detail");
 let saveTimeout;
 let clearStatusTimeout;
 
@@ -64,6 +68,16 @@ function setPillState(siteSettings) {
   const hasEnabledSite = Object.values(siteSettings).some(Boolean);
   activePillEl.textContent = hasEnabledSite ? "Active" : "Paused";
   activePillEl.classList.toggle("paused", !hasEnabledSite);
+}
+
+function renderModelState(rawModelState) {
+  if (!modelSummaryEl || !modelDetailEl) {
+    return;
+  }
+
+  const { summary, detail } = describeModelState(rawModelState);
+  modelSummaryEl.textContent = summary;
+  modelDetailEl.textContent = detail;
 }
 
 function mergeSettings(raw) {
@@ -156,9 +170,10 @@ function scheduleSave() {
 
 async function init() {
   try {
-    const data = await chrome.storage.local.get(STORAGE_KEY);
+    const data = await chrome.storage.local.get([STORAGE_KEY, MODEL_STATE_KEY]);
     const settings = mergeSettings(data[STORAGE_KEY]);
     applySettingsToUI(settings);
+    renderModelState(normalizeModelState(data[MODEL_STATE_KEY]));
 
     if (!data[STORAGE_KEY]) {
       await chrome.storage.local.set({ [STORAGE_KEY]: settings });
@@ -168,8 +183,19 @@ async function init() {
   } catch (err) {
     applySettingsToUI(DEFAULT_SETTINGS);
     setPillState(DEFAULT_SETTINGS.sites);
+    renderModelState(null);
     setStatus(`Load failed: ${err?.message ?? String(err)}`, "error");
   }
+
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName !== "local") {
+      return;
+    }
+
+    if (changes[MODEL_STATE_KEY]) {
+      renderModelState(normalizeModelState(changes[MODEL_STATE_KEY].newValue));
+    }
+  });
 
   const toggles = document.querySelectorAll("input[type='checkbox']");
   for (const toggle of toggles) {
