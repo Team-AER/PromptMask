@@ -9,6 +9,10 @@ models/
 
 # Runtime outputs
 prompt.txt
+redaction_eval_*.json
+output_snippet_*
+prompt_snippet_*
+snippet_*_only.txt
 
 # Bundled LiteRT-LM CLI binary
 lit

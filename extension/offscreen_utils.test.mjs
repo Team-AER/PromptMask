@@ -111,6 +111,9 @@ function testPromptIncludesCriticalRules() {
   assert.ok(REDACTION_PROMPT.includes("Redact device identifiers"));
   assert.ok(REDACTION_PROMPT.includes("Redact usernames/account handles"));
   assert.ok(REDACTION_PROMPT.includes("Only redact dates that clearly indicate a date of birth"));
+  assert.ok(REDACTION_PROMPT.includes("Use ONLY the placeholder categories listed below"));
+  assert.ok(REDACTION_PROMPT.includes("Never invent new placeholder categories"));
+  assert.ok(REDACTION_PROMPT.includes("Replace a full email address as one span"));
   assert.ok(REDACTION_PROMPT.includes("Do not redact category labels or generic phrases"));
 }
 
@@ -169,6 +172,16 @@ function testPromptIncludesUsernameExample() {
   assert.ok(REDACTION_PROMPT.includes("Please remove bank details if present."));
 }
 
+function testPromptIncludesDobAndIdentifierExamples() {
+  assert.ok(REDACTION_PROMPT.includes("The insured was born on January 7, 1985."));
+  assert.ok(REDACTION_PROMPT.includes("Her next appointment is on 2026-03-03 at 10:30 AM."));
+  assert.ok(REDACTION_PROMPT.includes("The insured was born on [DATE_OF_BIRTH 1]."));
+  assert.ok(REDACTION_PROMPT.includes("order ORD-2026-77831 and invoice INV-2026-01487"));
+  assert.ok(REDACTION_PROMPT.includes("Keep legal hold [CASE_ID 1] attached to case [CASE_ID 2]."));
+  assert.ok(REDACTION_PROMPT.includes("Contact ar@brightpathsystems.com or julia.reyes@redstoneadvisory.com"));
+  assert.ok(REDACTION_PROMPT.includes("Contact [EMAIL 1] or [EMAIL 2] for follow-up."));
+}
+
 function testNormalizeOutputStripsEndOfTurn() {
   const raw = "Contact [NAME 1].<end_of_turn> extra";
   const normalized = normalizeOutput(raw);
@@ -219,6 +232,7 @@ function run() {
   testPromptIncludesNameVariantExample();
   testPromptIncludesHeaderExample();
   testPromptIncludesUsernameExample();
+  testPromptIncludesDobAndIdentifierExamples();
   testNormalizeOutputStripsEndOfTurn();
   testNormalizeOutputStripsLeadingModelTag();
   testNormalizeOutputHandlesBothTags();

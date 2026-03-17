@@ -1,6 +1,8 @@
 const PROMPT_PREAMBLE = `You are a PII redaction system. Replace any PII in the input with consistently numbered placeholders and return ONLY the redacted text. Keep all non-PII text exactly as-is. Do not add or remove any other words. Do not add headings, labels, explanations, quotes, or tags.
 
-Preserve the original formatting exactly: keep all line breaks, paragraph spacing, bullet points, indentation, list structure, and whitespace. Do not collapse the text into a single line or paragraph or normalize spacing.`;
+Preserve the original formatting exactly: keep all line breaks, paragraph spacing, bullet points, indentation, list structure, and whitespace. Do not collapse the text into a single line or paragraph or normalize spacing.
+
+Use ONLY the placeholder categories listed below. Never invent new placeholder categories such as [CITY], [TIME], [ZIP], [SUB-CC], [ENDPOINT_SERIAL], [MON_NUMBER], or any other unlisted tag. If a value does not fit one of the listed categories, leave it unchanged.`;
 
 const CATEGORY_PLACEHOLDER_LINES = {
   identityContact: [
@@ -48,19 +50,22 @@ const GENERIC_NUMBERING_RULES = [
   "- If the same PII value appears again later, reuse the same number.",
   "- Different PII values in the same category get different numbers.",
   "- Replace each PII span with exactly one placeholder. Do not split a single name or email into multiple placeholders.",
+  "- Replace the entire matched value, including fixed prefixes, suffixes, punctuation, and separators. Example: replace `INV-2026-00173` as one placeholder, not `INV-[INVOICE_ID 1]`.",
+  "- Replace a full email address as one span, including the local-part and the domain. Never leave fragments such as `ar@[EMAIL 1]` or `[NAME]@example.com`.",
   "- Do not invent placeholders. Only replace substrings that are actual PII values present in the input.",
   `- Do not redact category labels or generic phrases without a concrete identifier (e.g., "bank details", "PAN", "invoice number" with no value).`
 ];
 
 const CATEGORY_RULES = {
   identityContact: [
-    `- Only redact dates that clearly indicate a date of birth (DOB, "date of birth", "born", "birthday"). Leave other dates/timestamps unchanged.`,
+    `- Only redact dates that clearly indicate a date of birth (DOB, "date of birth", "born", "birthday", "Patient date of birth"). Leave all other dates and timestamps unchanged.`,
+    `- Standalone service dates, discharge dates, appointment dates, incident dates, month/day mentions, and timestamps are NOT dates of birth and must remain unchanged unless the text explicitly says they are DOB-related.`,
     `- Treat abbreviated names or initials as distinct values unless the text is an exact match (e.g., "Neha Kulkarni" != "Neha K.").`,
     "- Redact full names (first + last) entirely with [NAME N]; do not leave surnames.",
-    "- Redact full street addresses, mailing addresses, and business addresses entirely with a single [ADDRESS N]. This includes building names, floor/unit numbers, street names, localities, cities, states, and postal codes.",
+    "- Redact full street addresses, mailing addresses, and business addresses entirely with a single [ADDRESS N]. This includes building names, floor/unit numbers, street names, localities, cities, states, postal codes, and countries when present.",
     "- Redact phone numbers (including country codes) with [PHONE N].",
     "- Redact emails with [EMAIL N].",
-    `- Redact dates of birth (e.g., "DOB: 1992-08-14") with [DATE_OF_BIRTH N].`,
+    `- Redact dates of birth (e.g., "DOB: 1992-08-14" or "born on January 7, 1985") with [DATE_OF_BIRTH N].`,
     `- Redact usernames/account handles (e.g., "neha.kulkarni91") with [USERNAME N].`
   ],
   governmentLegal: [
@@ -74,8 +79,10 @@ const CATEGORY_RULES = {
     "- Redact device identifiers (e.g., hardware IDs like A1B2C3D4E5F6) with [DEVICE_ID N]."
   ],
   businessCase: [
+    "- Redact order/transaction IDs (e.g., ORD-2026-77831) with [ORDER_ID N].",
     "- Redact invoice numbers (e.g., INV-2026-00173) with [INVOICE_ID N].",
-    "- Redact ticket/case/reference IDs (e.g., TCK-556201) with [CASE_ID N]."
+    "- Redact ticket/case/reference IDs (e.g., TCK-556201, CASE-OPS-2026-2194, HOLD-2026-BPS-44) with [CASE_ID N].",
+    "- If an identifier includes a business prefix such as ORD-, INV-, TCK-, CASE-, REF-, HOLD-, or MRN-, replace the full identifier and do not leave any numeric fragment behind."
   ]
 };
 
@@ -100,6 +107,14 @@ Output: From: [NAME 1] [EMAIL 1]
 To: [EMAIL 2]
 Date: 2026-01-13
 Subject: Re: Case [CASE_ID 1] — request for redacted logs
+Input: Ship the replacement to 480 West Fulton Market, Suite 900, Chicago, IL 60661, United States.
+Output: Ship the replacement to [ADDRESS 1].
+Input: The insured was born on January 7, 1985. Her next appointment is on 2026-03-03 at 10:30 AM.
+Output: The insured was born on [DATE_OF_BIRTH 1]. Her next appointment is on 2026-03-03 at 10:30 AM.
+Input: Remit payment for order ORD-2026-77831 and invoice INV-2026-01487. Keep legal hold HOLD-2026-BPS-44 attached to case CASE-OPS-2026-2194.
+Output: Remit payment for order [ORDER_ID 1] and invoice [INVOICE_ID 1]. Keep legal hold [CASE_ID 1] attached to case [CASE_ID 2].
+Input: Contact ar@brightpathsystems.com or julia.reyes@redstoneadvisory.com for follow-up.
+Output: Contact [EMAIL 1] or [EMAIL 2] for follow-up.
 Input: Account username is neha.kulkarni91. Please remove bank details if present.
 Output: Account username is [USERNAME 1]. Please remove bank details if present.
 Input: Alice emailed Bob at bob@x.com. Alice's SSN is 111-22-3333 and Bob's is 444-55-6666.

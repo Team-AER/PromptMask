@@ -743,3 +743,98 @@ Section 6: Actions and open items
 
 Section 7: Distribution note
 This case file may be shared only with Anita Verma, Omar Siddiqui, Nina Alvarez, Marcus Hill's manager Rebecca Shaw, and outside counsel if required. No version of this document should be forwarded to vendors without redaction of employee, payroll, banking, reimbursement, and token data.
+
+==============================================================
+TEST SNIPPET 45: Category toggle matrix — one example from every toggle
+==============================================================
+Manual toggle verification sheet:
+- Identity/contact: Maya Rao, maya.rao@samplemail.com, +1 (415) 555-0701
+- Address and DOB: 14 King Street, Floor 5, Seattle, WA 98104; DOB: 1990-04-12
+- Government/legal: SSN 234-56-7890, PAN AKTPR1234K, GST 29ABCDE1234F1Z7, driver's license D402-5512-8899
+- Financial/payment: Account 445566778899, card 4111 1111 1111 1111, expiry 07/29, CVV 314, PayPal ID MAYA-PAY-8821
+- Medical: Insurance ID AET-55443321, MRN MRN-22004567
+- Credentials/secrets: API key sk-live-abcd1234efgh5678ijkl9012mnop3456qrst7890, access token ghp_QwErTy1234567890AaBbCcDdEeFfGgHhJj
+- Network/device: IP 203.0.113.42, device ID A1B2C3D4E5F6
+- Business/case: Order ORD-2026-90017, invoice INV-2026-04211, case CASE-OPS-2026-7781
+- Control line: Meeting date 2026-03-10 should remain unchanged because it is not a DOB.
+
+==============================================================
+TEST SNIPPET 46: Toggle focus — Identity & contact only
+==============================================================
+Candidate profile update:
+Name: Elena Park
+Username: elena_park88
+Email: elena.park@samplemail.com
+Phone: +1 (628) 555-0702
+DOB: 1994-02-09
+Address: 955 Valencia Street, Apt 12, San Francisco, CA 94110
+Reference ticket: TCK-2026-5511
+Service date: 2026-03-15
+
+==============================================================
+TEST SNIPPET 47: Toggle focus — Government & legal only
+==============================================================
+Vendor compliance packet:
+Legal name: Arun Batra
+SSN: 654-32-1987
+PAN: BNZPA4412Q
+GST registration: 07BNZPA4412Q1Z3
+Driver's license: D880-4412-7719
+Email for notifications: arun.batra@vendorhub.com
+Review date: 2026-03-12
+
+==============================================================
+TEST SNIPPET 48: Toggle focus — Financial & payment only
+==============================================================
+Billing correction request:
+Customer: Sofia Mendes
+Bank account number: 778899001122
+Routing number: 021000021
+Card number: 4532 8901 2345 4455
+Expiry: 06/28
+CVV: 882
+PayPal ID: SOFIA-PAY-1172
+Email: sofia.mendes@billingmail.com
+
+==============================================================
+TEST SNIPPET 49: Toggle focus — Medical only
+==============================================================
+Referral intake summary:
+Patient: Daniel Cho
+Insurance ID: UHC-44001992
+MRN: MRN-77881234
+DOB: 1988-10-27
+Phone: +1 (206) 555-0703
+Appointment date: 2026-03-21
+
+==============================================================
+TEST SNIPPET 50: Toggle focus — Credentials & secrets only
+==============================================================
+Incident triage notes:
+Engineer: Priyanka Sen
+Temporary API key: sk-test-xyza1234bcde5678fghi9012jklm3456nopq7890
+Refresh token: ghp_AsDfGh1234567890QwErTyUiOpZxCvBnMm
+Source IP: 198.51.100.24
+Opened under case TCK-2026-7744
+
+==============================================================
+TEST SNIPPET 51: Toggle focus — Network & device only
+==============================================================
+Endpoint activity log:
+User: Marcus Lee
+Observed public IP: 45.33.128.77
+Fallback IP: 10.20.30.44
+Laptop device ID: F7G8H9I0J1K2
+Peripheral device ID: Z9Y8X7W6V5U4
+Email contact: marcus.lee@opsmail.com
+
+==============================================================
+TEST SNIPPET 52: Toggle focus — Business & case only
+==============================================================
+Operations tracker:
+Order: ORD-2026-55190
+Invoice: INV-2026-08814
+Ticket: TCK-882104
+Master case: CASE-OPS-2026-2194
+Legal hold: HOLD-2026-BPS-44
+Contact: operations.audit@company.com

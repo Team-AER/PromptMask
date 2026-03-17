@@ -1,3 +1,4 @@
+==============================================================
 TEST SNIPPET 41: Long-form support escalation thread (approx. 350 words)
 ==============================================================
 SUPPORT ESCALATION SUMMARY

@@ -1,0 +1,177 @@
+==============================================================
+CATEGORY TOGGLE TEST SNIPPET 1: identityContact ON
+Broad category: identityContact
+Expected redacted: NAME, PHONE, EMAIL, USERNAME, ADDRESS, DATE_OF_BIRTH
+Expected untouched (other categories): SSN, CREDIT_CARD, INVOICE_ID
+==============================================================
+Hi, my name is Meera Joshi and my date of birth is 04/22/1993.
+You can reach me at meera.joshi@protonmail.com or call +91-98765-12345.
+My username on the portal is meera_joshi93.
+Ship the documents to 88 Park Avenue, Apt 3C, Mumbai 400001, India.
+For reference, my SSN is 123-45-6789, card number 4111 1111 1111 1111,
+and invoice INV-2026-00501.
+
+==============================================================
+CATEGORY TOGGLE TEST SNIPPET 2: identityContact OFF
+Broad category: identityContact
+Expected untouched: NAME, PHONE, EMAIL, USERNAME, ADDRESS, DATE_OF_BIRTH
+Expected redacted (other categories): SSN, CREDIT_CARD, INVOICE_ID
+==============================================================
+Hi, my name is Meera Joshi and my date of birth is 04/22/1993.
+You can reach me at meera.joshi@protonmail.com or call +91-98765-12345.
+My username on the portal is meera_joshi93.
+Ship the documents to 88 Park Avenue, Apt 3C, Mumbai 400001, India.
+For reference, my SSN is 123-45-6789, card number 4111 1111 1111 1111,
+and invoice INV-2026-00501.
+
+==============================================================
+CATEGORY TOGGLE TEST SNIPPET 3: governmentLegal ON
+Broad category: governmentLegal
+Expected redacted: SSN, PAN, GST, DRIVER_LICENSE
+Expected untouched (other categories): NAME, EMAIL, CREDIT_CARD
+==============================================================
+Employee Vikram Rao submitted his government documents.
+SSN: 234-56-7890
+PAN: BCDQR5678E
+GST registration: 29BCDQR5678E1Z3
+Driver's license number: D400-9988-7766
+Contact him at vikram.rao@example.com.
+His Visa card is 4222 2222 2222 2222, exp 03/28.
+
+==============================================================
+CATEGORY TOGGLE TEST SNIPPET 4: governmentLegal OFF
+Broad category: governmentLegal
+Expected untouched: SSN, PAN, GST, DRIVER_LICENSE
+Expected redacted (other categories): NAME, EMAIL, CREDIT_CARD
+==============================================================
+Employee Vikram Rao submitted his government documents.
+SSN: 234-56-7890
+PAN: BCDQR5678E
+GST registration: 29BCDQR5678E1Z3
+Driver's license number: D400-9988-7766
+Contact him at vikram.rao@example.com.
+His Visa card is 4222 2222 2222 2222, exp 03/28.
+
+==============================================================
+CATEGORY TOGGLE TEST SNIPPET 5: financialPayment ON
+Broad category: financialPayment
+Expected redacted: BANK_ACCOUNT, CREDIT_CARD, CARD_EXPIRY, CARD_CVV, PAYPAL
+Expected untouched (other categories): NAME, SSN, ORDER_ID
+==============================================================
+Customer Aisha Patel wants to update payment information.
+Credit card: 5500 0000 0000 0004, expiry 12/27, CVV 331.
+Bank account number: 20345678901234, IFSC: SBIN0001234.
+Her PayPal ID is AISHA-PP-4412.
+For background, her SSN is 345-67-8901 and the related order is ORD-2026-33192.
+
+==============================================================
+CATEGORY TOGGLE TEST SNIPPET 6: financialPayment OFF
+Broad category: financialPayment
+Expected untouched: BANK_ACCOUNT, CREDIT_CARD, CARD_EXPIRY, CARD_CVV, PAYPAL
+Expected redacted (other categories): NAME, SSN, ORDER_ID
+==============================================================
+Customer Aisha Patel wants to update payment information.
+Credit card: 5500 0000 0000 0004, expiry 12/27, CVV 331.
+Bank account number: 20345678901234, IFSC: SBIN0001234.
+Her PayPal ID is AISHA-PP-4412.
+For background, her SSN is 345-67-8901 and the related order is ORD-2026-33192.
+
+==============================================================
+CATEGORY TOGGLE TEST SNIPPET 7: medical ON
+Broad category: medical
+Expected redacted: INSURANCE_ID, MRN
+Expected untouched (other categories): NAME, PHONE, ADDRESS
+==============================================================
+Patient Lakshmi Reddy was admitted with the following records.
+Insurance ID: BCBS-55443322
+Medical record number: MRN-40098712
+She can be reached at +1 (408) 555-0771.
+Home address: 310 Cedar Lane, San Jose, CA 95126.
+
+==============================================================
+CATEGORY TOGGLE TEST SNIPPET 8: medical OFF
+Broad category: medical
+Expected untouched: INSURANCE_ID, MRN
+Expected redacted (other categories): NAME, PHONE, ADDRESS
+==============================================================
+Patient Lakshmi Reddy was admitted with the following records.
+Insurance ID: BCBS-55443322
+Medical record number: MRN-40098712
+She can be reached at +1 (408) 555-0771.
+Home address: 310 Cedar Lane, San Jose, CA 95126.
+
+==============================================================
+CATEGORY TOGGLE TEST SNIPPET 9: credentialsSecrets ON
+Broad category: credentialsSecrets
+Expected redacted: API_KEY, ACCESS_TOKEN
+Expected untouched (other categories): NAME, EMAIL, CASE_ID
+==============================================================
+Developer Rahul Krishnan reported a credential leak.
+His API key is sk-abc999def888ghi777jkl666mno555pqr444.
+The compromised access token is ghp_aB1cD2eF3gH4iJ5kL6mN7oP8qR9sT0uV.
+Contact him at rahul.krishnan@devteam.io regarding case TCK-881234.
+
+==============================================================
+CATEGORY TOGGLE TEST SNIPPET 10: credentialsSecrets OFF
+Broad category: credentialsSecrets
+Expected untouched: API_KEY, ACCESS_TOKEN
+Expected redacted (other categories): NAME, EMAIL, CASE_ID
+==============================================================
+Developer Rahul Krishnan reported a credential leak.
+His API key is sk-abc999def888ghi777jkl666mno555pqr444.
+The compromised access token is ghp_aB1cD2eF3gH4iJ5kL6mN7oP8qR9sT0uV.
+Contact him at rahul.krishnan@devteam.io regarding case TCK-881234.
+
+==============================================================
+CATEGORY TOGGLE TEST SNIPPET 11: networkDevice ON
+Broad category: networkDevice
+Expected redacted: IP_ADDRESS, DEVICE_ID
+Expected untouched (other categories): NAME, EMAIL, INVOICE_ID
+==============================================================
+Security analyst Priya Das flagged suspicious activity.
+Source IP: 192.168.10.42
+Secondary IP: 10.0.0.88
+Device identifier: A9B8C7D6E5F4
+Endpoint serial: X1Y2Z3W4V5U6
+Contact Priya at priya.das@secops.net about invoice INV-2026-07744.
+
+==============================================================
+CATEGORY TOGGLE TEST SNIPPET 12: networkDevice OFF
+Broad category: networkDevice
+Expected untouched: IP_ADDRESS, DEVICE_ID
+Expected redacted (other categories): NAME, EMAIL, INVOICE_ID
+==============================================================
+Security analyst Priya Das flagged suspicious activity.
+Source IP: 192.168.10.42
+Secondary IP: 10.0.0.88
+Device identifier: A9B8C7D6E5F4
+Endpoint serial: X1Y2Z3W4V5U6
+Contact Priya at priya.das@secops.net about invoice INV-2026-07744.
+
+==============================================================
+CATEGORY TOGGLE TEST SNIPPET 13: businessCase ON
+Broad category: businessCase
+Expected redacted: ORDER_ID, INVOICE_ID, CASE_ID
+Expected untouched (other categories): NAME, PHONE, BANK_ACCOUNT
+==============================================================
+Operations lead Kavita Nair is tracking the following references.
+Order: ORD-2026-88321
+Invoice: INV-2026-04455
+Ticket: TCK-990122
+Case: CASE-OPS-2026-5501
+Legal hold: HOLD-2026-HR-18
+Her direct line is +1 (646) 555-0933 and her bank account is 11223344556677.
+
+==============================================================
+CATEGORY TOGGLE TEST SNIPPET 14: businessCase OFF
+Broad category: businessCase
+Expected untouched: ORDER_ID, INVOICE_ID, CASE_ID
+Expected redacted (other categories): NAME, PHONE, BANK_ACCOUNT
+==============================================================
+Operations lead Kavita Nair is tracking the following references.
+Order: ORD-2026-88321
+Invoice: INV-2026-04455
+Ticket: TCK-990122
+Case: CASE-OPS-2026-5501
+Legal hold: HOLD-2026-HR-18
+Her direct line is +1 (646) 555-0933 and her bank account is 11223344556677.
