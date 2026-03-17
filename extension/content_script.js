@@ -85,7 +85,6 @@ const NATIVE_SUBMIT_BYPASS_MS = 1200;
 
 const SETTINGS_STORAGE_KEY = "promptmask_settings_v1";
 const MODEL_STATE_KEY = "promptmask_model_state_v1";
-const MODEL_EXPECTED_BYTES = 3040000000;
 const DEFAULT_SETTINGS = {
   sites: {
     chatgpt: true,
@@ -738,7 +737,7 @@ function showToast(message, isError = false) {
 
 const DOWNLOAD_BANNER_ID = "gemma-download-banner";
 
-function showDownloadProgress(label, percent) {
+function showDownloadProgress(label) {
   let banner = document.getElementById(DOWNLOAD_BANNER_ID);
   if (!banner) {
     banner = document.createElement("div");
@@ -764,43 +763,14 @@ function showDownloadProgress(label, percent) {
 
     const labelEl = document.createElement("div");
     labelEl.dataset.role = "label";
-    labelEl.style.marginBottom = "8px";
     labelEl.style.fontWeight = "500";
     banner.appendChild(labelEl);
-
-    const trackEl = document.createElement("div");
-    trackEl.dataset.role = "track";
-    trackEl.style.cssText = [
-      "width: 100%",
-      "height: 6px",
-      "border-radius: 3px",
-      "background: rgba(255, 255, 255, 0.15)",
-      "overflow: hidden"
-    ].join("; ");
-
-    const fillEl = document.createElement("div");
-    fillEl.dataset.role = "fill";
-    fillEl.style.cssText = [
-      "height: 100%",
-      "width: 0%",
-      "border-radius: 3px",
-      "background: linear-gradient(90deg, #4fc3f7 0%, #29b6f6 50%, #039be5 100%)",
-      "transition: width 400ms ease"
-    ].join("; ");
-
-    trackEl.appendChild(fillEl);
-    banner.appendChild(trackEl);
     document.body.appendChild(banner);
   }
 
   const labelEl = banner.querySelector("[data-role='label']");
-  const fillEl = banner.querySelector("[data-role='fill']");
   if (labelEl) {
     labelEl.textContent = label;
-  }
-  if (fillEl) {
-    const clampedPct = Math.max(0, Math.min(100, percent ?? 0));
-    fillEl.style.width = `${clampedPct}%`;
   }
   banner.style.opacity = "1";
 }
@@ -1012,14 +982,6 @@ function looksLikeValidRedaction(originalText, redactedText) {
   return true;
 }
 
-function formatDownloadPercent(downloadedBytes, totalBytes) {
-  const total = totalBytes || MODEL_EXPECTED_BYTES;
-  if (total <= 0) {
-    return null;
-  }
-  return Math.min(100, Math.floor((downloadedBytes / total) * 100));
-}
-
 async function getModelStatus() {
   try {
     const data = await chrome.storage.local.get(MODEL_STATE_KEY);
@@ -1038,21 +1000,11 @@ function handleModelProgress(modelState) {
   }
   const status = modelState.status;
   if (status === "downloading") {
-    const total = (typeof modelState.totalBytes === "number" && modelState.totalBytes > 0)
-      ? modelState.totalBytes
-      : MODEL_EXPECTED_BYTES;
-    const downloaded = typeof modelState.downloadedBytes === "number"
-      ? modelState.downloadedBytes
-      : 0;
-    const pct = formatDownloadPercent(downloaded, total);
-    showDownloadProgress(
-      pct !== null ? `Downloading model\u2026 ${pct}%` : "Downloading model\u2026",
-      pct ?? 0
-    );
+    showDownloadProgress("Downloading redaction model \u2014 one-time setup\u2026");
   } else if (status === "loading") {
-    showDownloadProgress("Loading model\u2026", 100);
+    showDownloadProgress("Loading redaction model\u2026");
   } else if (status === "ready") {
-    showDownloadProgress("Model ready \u2014 redacting\u2026", 100);
+    showDownloadProgress("Redacting\u2026");
   }
 }
 
@@ -1082,7 +1034,7 @@ async function redactAndPreview({ composer, sendButton }) {
   let progressListener = null;
 
   if (isFirstUse) {
-    showDownloadProgress("Downloading model for first use\u2026", 0);
+    showDownloadProgress("Downloading redaction model \u2014 one-time setup\u2026");
     // Listen for MODEL_PROGRESS messages relayed by the service worker.
     progressListener = (message) => {
       if (message && message.type === "MODEL_PROGRESS") {
