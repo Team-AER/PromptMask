@@ -1,6 +1,11 @@
 import { FilesetResolver, LlmInference } from "./lib/genai_bundle.mjs";
-import { buildPrompt, normalizeOutput } from "./offscreen_utils.mjs";
-import { MODEL_DOWNLOAD_URL, getModelAssetReader } from "./model_cache.mjs";
+import {
+  buildCorrectionPrompt,
+  buildPrompt,
+  findDisallowedPlaceholderKeys,
+  normalizeOutput
+} from "./offscreen_utils.mjs";
+import { MODEL_DOWNLOAD_URL, getModelAssetReader, writeModelState } from "./model_cache.mjs";
 
 const WASM_URL = chrome.runtime.getURL("lib/wasm");
 const MAX_TOKENS = 4096;
@@ -26,10 +31,18 @@ async function initModel() {
           topK: 1,
           randomSeed: 1
         });
+        await writeModelState({
+          status: "ready",
+          error: null
+        });
         console.info("[Gemma Redaction] Model ready.");
         llmInferenceInstance = instance;
         return instance;
       } catch (error) {
+        await writeModelState({
+          status: "error",
+          error: error?.message ?? String(error)
+        }).catch(() => {});
         llmInferencePromise = null;
         llmInferenceInstance = null;
         throw error;
@@ -75,12 +88,32 @@ chrome.runtime.onMessage.addListener((message) => {
     await enqueueInference(async () => {
       try {
         const inputText = message.prompt ?? "";
-        const result = await runInference(buildPrompt(inputText, message.redactionConfig));
+        const firstResult = await runInference(buildPrompt(inputText, message.redactionConfig));
         console.info("[Gemma Redaction] Inference complete.");
-        const normalized =
-          typeof result === "string"
-            ? normalizeOutput(result)
-            : normalizeOutput(JSON.stringify(result));
+        let normalized =
+          typeof firstResult === "string"
+            ? normalizeOutput(firstResult)
+            : normalizeOutput(JSON.stringify(firstResult));
+        let disallowedPlaceholderKeys = findDisallowedPlaceholderKeys(normalized, message.redactionConfig);
+        if (disallowedPlaceholderKeys.length > 0) {
+          console.warn(
+            "[Gemma Redaction] Retrying after disabled placeholders:",
+            disallowedPlaceholderKeys
+          );
+          const retryResult = await runInference(
+            buildCorrectionPrompt(inputText, message.redactionConfig, disallowedPlaceholderKeys)
+          );
+          normalized =
+            typeof retryResult === "string"
+              ? normalizeOutput(retryResult)
+              : normalizeOutput(JSON.stringify(retryResult));
+          disallowedPlaceholderKeys = findDisallowedPlaceholderKeys(normalized, message.redactionConfig);
+        }
+        if (disallowedPlaceholderKeys.length > 0) {
+          throw new Error(
+            `Model returned placeholders for disabled categories: ${disallowedPlaceholderKeys.join(", ")}`
+          );
+        }
         chrome.runtime.sendMessage({
           target: "service_worker",
           type: "LLM_RESULT",

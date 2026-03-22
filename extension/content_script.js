@@ -36,6 +36,9 @@ const COMPOSER_SELECTORS = [
   "div[contenteditable='plaintext-only'][data-placeholder*='claude' i]",
   "div.ProseMirror[contenteditable='true']",
   "div.ProseMirror[contenteditable='plaintext-only']",
+  "[data-lexical-editor='true'][contenteditable='true']",
+  "[data-lexical-editor='true'][contenteditable='plaintext-only']",
+  "[data-lexical-editor='true'][role='textbox']",
   "[data-testid*='chat-input' i] [contenteditable='true']",
   "[data-testid*='chat-input' i] [contenteditable='plaintext-only']",
   "div[contenteditable='true'][role='textbox']",
@@ -64,6 +67,23 @@ const SEND_BUTTON_SELECTORS = [
   "button[mattooltip*='submit' i]",
   "button[type='submit']"
 ];
+const EDITABLE_COMPOSER_SELECTOR = [
+  "textarea",
+  "input[type='text']",
+  "input[type='search']",
+  "input:not([type])",
+  "[contenteditable]:not([contenteditable='false'])",
+  "[data-lexical-editor='true']",
+  "[role='textbox']"
+].join(", ");
+const NESTED_EDITABLE_COMPOSER_SELECTOR = [
+  "textarea",
+  "input[type='text']",
+  "input[type='search']",
+  "input:not([type])",
+  "[contenteditable]:not([contenteditable='false'])",
+  "[data-lexical-editor='true']"
+].join(", ");
 
 const PHASE_IDLE = "idle";
 const PHASE_PREVIEW = "redacted_preview";
@@ -73,6 +93,7 @@ const state = {
   phase: PHASE_IDLE,
   lastFocusedComposer: null,
   lastFocusedAt: 0,
+  modelReadyForSession: false,
   nativeSubmitBypass: false,
   nativeSubmitComposer: null,
   nativeSubmitBypassUntil: 0
@@ -146,18 +167,20 @@ const PLACEHOLDER_PREFIXES = [
   "[CARD_CVV ",
   "[ACCESS_TOKEN "
 ];
+const PLACEHOLDER_TOKEN_PATTERN = /\[[A-Z_]+ \d+\]/g;
 
 const SPINNER_ID = "gemma-redaction-spinner";
 const SPINNER_STYLE_ID = "gemma-redaction-spinner-style";
 
 function getComposerText(el) {
-  if (!el) {
+  const composer = resolveComposerElement(el);
+  if (!composer) {
     return "";
   }
-  if (el instanceof HTMLTextAreaElement || el instanceof HTMLInputElement) {
-    return el.value;
+  if (composer instanceof HTMLTextAreaElement || composer instanceof HTMLInputElement) {
+    return composer.value;
   }
-  return el.innerText || el.textContent || "";
+  return composer.innerText || composer.textContent || "";
 }
 
 function isContentEditableComposer(el) {
@@ -173,6 +196,44 @@ function isContentEditableComposer(el) {
   return previousValue === "true" || previousValue === "plaintext-only";
 }
 
+function isTextInputComposer(el) {
+  return el instanceof HTMLTextAreaElement || el instanceof HTMLInputElement;
+}
+
+function isNativeEditableComposer(el) {
+  if (!(el instanceof HTMLElement)) {
+    return false;
+  }
+  if (el.getAttribute("aria-hidden") === "true") {
+    return false;
+  }
+  if (isTextInputComposer(el)) {
+    return el.type !== "hidden" && !el.disabled && !el.readOnly;
+  }
+  return isContentEditableComposer(el);
+}
+
+function findNestedEditableComposer(el) {
+  if (!(el instanceof Element) || typeof el.querySelector !== "function") {
+    return null;
+  }
+  const nested = el.querySelector(NESTED_EDITABLE_COMPOSER_SELECTOR);
+  if (!(nested instanceof HTMLElement) || nested === el) {
+    return null;
+  }
+  return isNativeEditableComposer(nested) ? nested : null;
+}
+
+function resolveComposerElement(el) {
+  if (!el) {
+    return null;
+  }
+  if (isNativeEditableComposer(el)) {
+    return el;
+  }
+  return findNestedEditableComposer(el) ?? el;
+}
+
 function isEditableComposerElement(el) {
   if (!(el instanceof HTMLElement)) {
     return false;
@@ -180,17 +241,24 @@ function isEditableComposerElement(el) {
   if (el.getAttribute("aria-hidden") === "true") {
     return false;
   }
-  if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
-    return el.type !== "hidden" && !el.disabled && !el.readOnly;
+
+  if (isNativeEditableComposer(el)) {
+    return true;
   }
-  return isContentEditableComposer(el) || el.getAttribute("role") === "textbox";
+
+  if (el.getAttribute("role") === "textbox") {
+    return Boolean(findNestedEditableComposer(el));
+  }
+
+  return false;
 }
 
 function rememberComposer(el) {
-  if (!isEditableComposerElement(el)) {
+  const composer = resolveComposerElement(el);
+  if (!isEditableComposerElement(composer)) {
     return;
   }
-  state.lastFocusedComposer = el;
+  state.lastFocusedComposer = composer;
   state.lastFocusedAt = Date.now();
 }
 
@@ -225,8 +293,9 @@ function findComposerFromEventPath(event) {
     return null;
   }
   for (const node of event.composedPath()) {
-    if (isEditableComposerElement(node)) {
-      return node;
+    const composer = resolveComposerElement(node);
+    if (isEditableComposerElement(composer)) {
+      return composer;
     }
   }
   return null;
@@ -301,6 +370,22 @@ function dispatchComposerInput(el, value) {
   }
 }
 
+function dispatchComposerBeforeInput(el, value, inputType = "insertText") {
+  try {
+    return el.dispatchEvent(
+      new InputEvent("beforeinput", {
+        bubbles: true,
+        cancelable: true,
+        composed: true,
+        inputType,
+        data: value
+      })
+    );
+  } catch {
+    return el.dispatchEvent(new Event("beforeinput", { bubbles: true, cancelable: true, composed: true }));
+  }
+}
+
 function insertPlainTextWithLineBreaks(range, value) {
   const fragment = document.createDocumentFragment();
   const lines = String(value).split("\n");
@@ -335,6 +420,8 @@ function setContentEditableComposerText(el, value) {
   selection?.removeAllRanges();
   selection?.addRange(range);
 
+  dispatchComposerBeforeInput(el, value, "insertText");
+
   if (typeof document.execCommand === "function") {
     try {
       document.execCommand("insertText", false, value);
@@ -348,48 +435,58 @@ function setContentEditableComposerText(el, value) {
     range.deleteContents();
     insertPlainTextWithLineBreaks(range, value);
     placeCaretAtEnd(el);
+    dispatchComposerBeforeInput(el, value, "insertFromPaste");
   }
 
   dispatchComposerInput(el, value);
 }
 
 function setComposerText(el, value) {
-  if (!el) {
+  const composer = resolveComposerElement(el);
+  if (!composer) {
     return;
   }
-  if (el instanceof HTMLTextAreaElement || el instanceof HTMLInputElement) {
+  if (composer instanceof HTMLTextAreaElement || composer instanceof HTMLInputElement) {
     const proto =
-      el instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+      composer instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
     const valueSetter = Object.getOwnPropertyDescriptor(proto, "value")?.set;
     if (valueSetter) {
-      valueSetter.call(el, value);
+      valueSetter.call(composer, value);
     } else {
-      el.value = value;
+      composer.value = value;
     }
-    dispatchComposerInput(el, value);
-    el.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
+    dispatchComposerInput(composer, value);
+    composer.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
     return;
   }
 
-  if (isContentEditableComposer(el)) {
-    setContentEditableComposerText(el, value);
+  if (isContentEditableComposer(composer)) {
+    setContentEditableComposerText(composer, value);
     return;
   }
 
-  el.textContent = value;
-  dispatchComposerInput(el, value);
+  composer.textContent = value;
+  dispatchComposerInput(composer, value);
 }
 
 async function applyComposerText(composer, value) {
-  setComposerText(composer, value);
-  await waitForUiUpdate();
-  if (composerReflectsValue(composer, value)) {
-    return true;
+  const targetComposer = resolveComposerElement(composer);
+  if (!targetComposer) {
+    return false;
   }
 
-  setComposerText(composer, value);
-  await waitForUiUpdate();
-  return composerReflectsValue(composer, value);
+  const targets = [targetComposer, ...findAlternateComposerTargets(targetComposer)];
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    for (const target of targets) {
+      setComposerText(target, value);
+    }
+    await waitForUiUpdate();
+    if (targets.some((target) => composerReflectsValue(target, value))) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function sendMessage(payload) {
@@ -533,30 +630,30 @@ function findComposer() {
   for (const selector of COMPOSER_SELECTORS) {
     const el = document.querySelector(selector);
     if (el) {
-      return el;
+      return resolveComposerElement(el);
     }
   }
 
-  const editableCandidates = Array.from(
-    document.querySelectorAll(
-      "textarea, input[type='text'], input[type='search'], input:not([type]), [contenteditable]:not([contenteditable='false']), [role='textbox']"
-    )
-  ).filter((el) => {
+  const editableCandidates = Array.from(document.querySelectorAll(EDITABLE_COMPOSER_SELECTOR)).filter((el) => {
     if (!(el instanceof HTMLElement)) {
       return false;
     }
-    if (el.matches("input[type='hidden']")) {
+    const composer = resolveComposerElement(el);
+    if (!(composer instanceof HTMLElement)) {
       return false;
     }
-    if (el.getAttribute("aria-hidden") === "true") {
+    if (composer.matches("input[type='hidden']")) {
       return false;
     }
-    if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
-      if (el.disabled || el.readOnly) {
+    if (composer.getAttribute("aria-hidden") === "true") {
+      return false;
+    }
+    if (composer instanceof HTMLInputElement || composer instanceof HTMLTextAreaElement) {
+      if (composer.disabled || composer.readOnly) {
         return false;
       }
     }
-    const attrs = `${el.getAttribute("aria-label") ?? ""} ${el.getAttribute("placeholder") ?? ""}`
+    const attrs = `${composer.getAttribute("aria-label") ?? ""} ${composer.getAttribute("placeholder") ?? ""}`
       .toLowerCase()
       .trim();
     const hasPromptHint =
@@ -567,11 +664,11 @@ function findComposer() {
       attrs.includes("perplexity") ||
       attrs.includes("grok");
     const insideComposeRegion =
-      Boolean(el.closest("form")) ||
-      Boolean(el.closest("[data-testid='conversation-compose-box']")) ||
-      Boolean(el.closest("rich-textarea")) ||
-      Boolean(el.closest("[data-testid*='composer' i]")) ||
-      Boolean(el.closest("[class*='composer' i]"));
+      Boolean(composer.closest("form")) ||
+      Boolean(composer.closest("[data-testid='conversation-compose-box']")) ||
+      Boolean(composer.closest("rich-textarea")) ||
+      Boolean(composer.closest("[data-testid*='composer' i]")) ||
+      Boolean(composer.closest("[class*='composer' i]"));
 
     return hasPromptHint || insideComposeRegion;
   });
@@ -582,22 +679,23 @@ function findComposer() {
 
   const scored = editableCandidates
     .map((el) => {
-      const attrs = `${el.getAttribute("aria-label") ?? ""} ${el.getAttribute("placeholder") ?? ""}`
+      const composer = resolveComposerElement(el);
+      const attrs = `${composer?.getAttribute("aria-label") ?? ""} ${composer?.getAttribute("placeholder") ?? ""}`
         .toLowerCase()
         .trim();
-      const rect = typeof el.getBoundingClientRect === "function" ? el.getBoundingClientRect() : null;
+      const rect = typeof composer?.getBoundingClientRect === "function" ? composer.getBoundingClientRect() : null;
       let score = 0;
       if (attrs.includes("message")) score += 4;
       if (attrs.includes("ask")) score += 4;
       if (attrs.includes("prompt")) score += 3;
       if (attrs.includes("claude") || attrs.includes("perplexity")) score += 2;
-      if (el.closest("[data-testid='conversation-compose-box']")) score += 3;
-      if (el.closest("[data-testid*='composer' i]") || el.closest("[class*='composer' i]")) score += 2;
-      if (el.closest("form")) score += 1;
-      if (el instanceof HTMLTextAreaElement || el.isContentEditable) score += 1;
+      if (composer?.closest("[data-testid='conversation-compose-box']")) score += 3;
+      if (composer?.closest("[data-testid*='composer' i]") || composer?.closest("[class*='composer' i]")) score += 2;
+      if (composer?.closest("form")) score += 1;
+      if (composer instanceof HTMLTextAreaElement || composer?.isContentEditable) score += 1;
       if (rect && rect.bottom >= window.innerHeight * 0.45) score += 2;
       if (rect && rect.width >= Math.min(window.innerWidth * 0.35, 420)) score += 1;
-      return { el, score };
+      return { el: composer ?? el, score };
     })
     .sort((a, b) => b.score - a.score);
 
@@ -610,13 +708,12 @@ function findComposerInContainer(container) {
   }
   for (const selector of COMPOSER_SELECTORS) {
     const candidate = container.querySelector(selector);
-    if (candidate && isEditableComposerElement(candidate)) {
-      return candidate;
+    const composer = resolveComposerElement(candidate);
+    if (composer && isEditableComposerElement(composer)) {
+      return composer;
     }
   }
-  const fallback = container.querySelector(
-    "textarea, input[type='text'], input[type='search'], input:not([type]), [contenteditable]:not([contenteditable='false']), [role='textbox']"
-  );
+  const fallback = resolveComposerElement(container.querySelector(EDITABLE_COMPOSER_SELECTOR));
   return isEditableComposerElement(fallback) ? fallback : null;
 }
 
@@ -703,6 +800,87 @@ function getComposerContext(composer) {
   }
 
   return { form, scope, sendButton };
+}
+
+function getComposerCandidateScopes(composer) {
+  return [
+    composer?.closest("form") ?? null,
+    composer?.closest("[data-testid='conversation-compose-box']") ?? null,
+    composer?.closest("[data-testid*='composer' i]") ?? null,
+    composer?.closest("[class*='composer' i]") ?? null,
+    composer?.parentElement ?? null,
+    document
+  ].filter(Boolean);
+}
+
+function findAlternateComposerTargets(composer) {
+  const primary = resolveComposerElement(composer);
+  if (!primary) {
+    return [];
+  }
+
+  const seen = new Set([primary]);
+  const results = [];
+  for (const scope of getComposerCandidateScopes(primary)) {
+    if (!scope || typeof scope.querySelectorAll !== "function") {
+      continue;
+    }
+
+    const candidates = Array.from(scope.querySelectorAll(EDITABLE_COMPOSER_SELECTOR))
+      .map((candidate) => resolveComposerElement(candidate))
+      .filter((candidate) => candidate instanceof HTMLElement && isEditableComposerElement(candidate));
+
+    for (const candidate of candidates) {
+      if (seen.has(candidate) || !candidate.isConnected) {
+        continue;
+      }
+      seen.add(candidate);
+      results.push(candidate);
+    }
+  }
+
+  results.sort((left, right) => {
+    const leftScore =
+      (isTextInputComposer(left) ? 3 : 0) +
+      (left.getAttribute("data-lexical-editor") === "true" ? 2 : 0) +
+      (left.closest("form") ? 1 : 0);
+    const rightScore =
+      (isTextInputComposer(right) ? 3 : 0) +
+      (right.getAttribute("data-lexical-editor") === "true" ? 2 : 0) +
+      (right.closest("form") ? 1 : 0);
+    return rightScore - leftScore;
+  });
+
+  return results;
+}
+
+function describeComposerCandidate(composer) {
+  if (!(composer instanceof HTMLElement)) {
+    return null;
+  }
+
+  return {
+    tagName: composer.tagName,
+    role: composer.getAttribute("role"),
+    contentEditable: composer.getAttribute("contenteditable"),
+    dataLexicalEditor: composer.getAttribute("data-lexical-editor"),
+    dataTestId: composer.getAttribute("data-testid"),
+    ariaLabel: composer.getAttribute("aria-label"),
+    placeholder: composer.getAttribute("placeholder"),
+    className: composer.className,
+    valueLength: typeof composer.value === "string" ? composer.value.length : undefined,
+    textLength: getComposerText(composer).length
+  };
+}
+
+function logComposerWriteFailure(composer, value) {
+  const primary = resolveComposerElement(composer);
+  const targets = primary ? [primary, ...findAlternateComposerTargets(primary)] : [];
+  console.warn("[Gemma Redaction] Failed to write redacted text to composer.", {
+    expectedLength: String(value ?? "").length,
+    url: window.location.href,
+    targets: targets.map((target) => describeComposerCandidate(target))
+  });
 }
 
 function showToast(message, isError = false) {
@@ -821,25 +999,26 @@ function formatError(err) {
 }
 
 function setBusy(composer, sendButton, busy) {
-  if (!composer) {
+  const targetComposer = resolveComposerElement(composer);
+  if (!targetComposer) {
     return;
   }
 
   if (busy) {
-    if (!busyState.has(composer)) {
-      busyState.set(composer, {
-        pointerEvents: composer.style.pointerEvents,
-        opacity: composer.style.opacity,
-        contentEditable: composer.getAttribute("contenteditable"),
-        readOnly: composer.readOnly
+    if (!busyState.has(targetComposer)) {
+      busyState.set(targetComposer, {
+        pointerEvents: targetComposer.style.pointerEvents,
+        opacity: targetComposer.style.opacity,
+        contentEditable: targetComposer.getAttribute("contenteditable"),
+        ariaBusy: targetComposer.getAttribute("aria-busy"),
+        readOnly: isTextInputComposer(targetComposer) ? targetComposer.readOnly : undefined
       });
     }
-    composer.style.pointerEvents = "none";
-    composer.style.opacity = "0.7";
-    if (isContentEditableComposer(composer)) {
-      composer.setAttribute("contenteditable", "false");
-    } else if ("readOnly" in composer) {
-      composer.readOnly = true;
+    targetComposer.style.pointerEvents = "none";
+    targetComposer.style.opacity = "0.7";
+    targetComposer.setAttribute("aria-busy", "true");
+    if (isTextInputComposer(targetComposer)) {
+      targetComposer.readOnly = true;
     }
 
     if (sendButton) {
@@ -850,22 +1029,28 @@ function setBusy(composer, sendButton, busy) {
     return;
   }
 
-  const previous = busyState.get(composer);
+  const previous = busyState.get(targetComposer);
   if (previous) {
-    composer.style.pointerEvents = previous.pointerEvents ?? "";
-    composer.style.opacity = previous.opacity ?? "";
+    targetComposer.style.pointerEvents = previous.pointerEvents ?? "";
+    targetComposer.style.opacity = previous.opacity ?? "";
     if (previous.contentEditable === null) {
-      composer.removeAttribute("contenteditable");
+      targetComposer.removeAttribute("contenteditable");
     } else if (previous.contentEditable !== undefined) {
-      composer.setAttribute("contenteditable", previous.contentEditable);
+      targetComposer.setAttribute("contenteditable", previous.contentEditable);
     }
-    if ("readOnly" in composer) {
-      composer.readOnly = Boolean(previous.readOnly);
+    if (previous.ariaBusy === null) {
+      targetComposer.removeAttribute("aria-busy");
+    } else if (previous.ariaBusy !== undefined) {
+      targetComposer.setAttribute("aria-busy", previous.ariaBusy);
     }
-    busyState.delete(composer);
+    if (isTextInputComposer(targetComposer)) {
+      targetComposer.readOnly = Boolean(previous.readOnly);
+    }
+    busyState.delete(targetComposer);
   } else {
-    composer.style.pointerEvents = "";
-    composer.style.opacity = "";
+    targetComposer.style.pointerEvents = "";
+    targetComposer.style.opacity = "";
+    targetComposer.removeAttribute("aria-busy");
   }
 
   if (sendButton) {
@@ -965,18 +1150,47 @@ function looksLikeValidRedaction(originalText, redactedText) {
   }
   const originalLength = originalText.length;
   const redactedLength = redactedText.length;
+  const normalizedOriginal = normalizeComparableText(originalText);
+  const normalizedRedacted = normalizeComparableText(redactedText);
+  const changed = normalizedOriginal !== normalizedRedacted;
+
+  const hasPlaceholder = PLACEHOLDER_PREFIXES.some((prefix) => redactedText.includes(prefix));
+  if (changed && !hasPlaceholder) {
+    return false;
+  }
 
   if (originalLength <= 20) {
     return true;
   }
 
-  const hasPlaceholder = PLACEHOLDER_PREFIXES.some((prefix) => redactedText.includes(prefix));
   if (redactedLength < 12) {
     return false;
   }
 
   if (redactedLength < originalLength * 0.35 && !hasPlaceholder) {
     return false;
+  }
+
+  if (hasPlaceholder && !literalSegmentsAppearInOrder(normalizedOriginal, redactedText)) {
+    return false;
+  }
+
+  return true;
+}
+
+function literalSegmentsAppearInOrder(normalizedOriginalText, redactedText) {
+  const literalSegments = String(redactedText)
+    .split(PLACEHOLDER_TOKEN_PATTERN)
+    .map((segment) => normalizeComparableText(segment))
+    .filter(Boolean);
+
+  let searchStart = 0;
+  for (const segment of literalSegments) {
+    const foundAt = normalizedOriginalText.indexOf(segment, searchStart);
+    if (foundAt === -1) {
+      return false;
+    }
+    searchStart = foundAt + segment.length;
   }
 
   return true;
@@ -986,7 +1200,7 @@ async function getModelStatus() {
   try {
     const data = await chrome.storage.local.get(MODEL_STATE_KEY);
     const raw = data[MODEL_STATE_KEY];
-    return (raw && typeof raw === "object" && typeof raw.status === "string")
+    return raw && typeof raw === "object" && typeof raw.status === "string"
       ? raw.status
       : "not_downloaded";
   } catch {
@@ -1000,11 +1214,15 @@ function handleModelProgress(modelState) {
   }
   const status = modelState.status;
   if (status === "downloading") {
-    showDownloadProgress("Downloading redaction model \u2014 one-time setup\u2026");
+    hideSpinner();
+    showDownloadProgress("Downloading Redaction Model for first use...");
   } else if (status === "loading") {
-    showDownloadProgress("Loading redaction model\u2026");
+    hideSpinner();
+    showDownloadProgress("Loading Model...");
   } else if (status === "ready") {
-    showDownloadProgress("Redacting\u2026");
+    state.modelReadyForSession = true;
+    hideDownloadProgress();
+    showSpinner();
   }
 }
 
@@ -1026,27 +1244,33 @@ async function redactAndPreview({ composer, sendButton }) {
 
   state.running = true;
   setBusy(composer, sendButton, true);
-  showSpinner();
 
-  // Check whether the model is already cached.
-  const modelStatus = await getModelStatus();
-  const isFirstUse = modelStatus !== "ready";
-  let progressListener = null;
-
-  if (isFirstUse) {
-    showDownloadProgress("Downloading redaction model \u2014 one-time setup\u2026");
-    // Listen for MODEL_PROGRESS messages relayed by the service worker.
-    progressListener = (message) => {
-      if (message && message.type === "MODEL_PROGRESS") {
-        handleModelProgress(message.modelState);
-      }
-    };
-    chrome.runtime.onMessage.addListener(progressListener);
-  } else {
-    showToast("Redacting...", false);
-  }
+  const progressListener = (message) => {
+    if (message && message.type === "MODEL_PROGRESS") {
+      handleModelProgress(message.modelState);
+    }
+  };
+  chrome.runtime.onMessage.addListener(progressListener);
 
   try {
+    const modelStatus = await getModelStatus();
+    const isFirstUseDownload =
+      !state.modelReadyForSession &&
+      (modelStatus === "not_downloaded" || modelStatus === "downloading" || modelStatus === "error");
+
+    if (isFirstUseDownload) {
+      hideSpinner();
+      showDownloadProgress("Downloading Redaction Model for first use...");
+    } else if (modelStatus === "loading") {
+      hideSpinner();
+      showDownloadProgress("Loading Model...");
+    } else {
+      state.modelReadyForSession = true;
+      hideDownloadProgress();
+      showSpinner();
+      showToast("Redacting...", false);
+    }
+
     console.info("[Gemma Redaction] Sending prompt for redaction.");
     const response = await sendMessage({
       target: "service_worker",
@@ -1072,9 +1296,11 @@ async function redactAndPreview({ composer, sendButton }) {
     const expectedText = redacted && redacted.trim() ? redacted : originalText;
     const writeSucceeded = await applyComposerText(composer, expectedText);
     if (!writeSucceeded) {
+      logComposerWriteFailure(composer, expectedText);
       throw new Error("Could not update the message editor with the redacted text.");
     }
 
+    state.modelReadyForSession = true;
     enterPreview();
     // Allow an extra frame for trailing async input events to settle.
     await waitForUiUpdate();
@@ -1086,10 +1312,8 @@ async function redactAndPreview({ composer, sendButton }) {
     console.error("[Gemma Redaction] Redaction failed:", err);
     showToast(`Redaction failed: ${message}`, true);
   } finally {
-    if (progressListener) {
-      chrome.runtime.onMessage.removeListener(progressListener);
-      hideDownloadProgress();
-    }
+    chrome.runtime.onMessage.removeListener(progressListener);
+    hideDownloadProgress();
     suppressInputReset = false;
     hideSpinner();
     setBusy(composer, sendButton, false);
@@ -1330,6 +1554,13 @@ async function init() {
   observeComposer();
   bindGlobalFallbackHandlers();
 }
+
+// Register global event handlers immediately at document_start so the
+// capture-phase keydown listener fires BEFORE host-page scripts (e.g.
+// ChatGPT / React) register their own Enter-key handlers.  The guard
+// inside bindGlobalFallbackHandlers() prevents double-registration when
+// init() calls it again after settings are loaded.
+bindGlobalFallbackHandlers();
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => {

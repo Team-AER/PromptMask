@@ -56,12 +56,23 @@ function testDescribeModelStateForReady() {
   assert.ok(detail.includes("Stored locally"));
 }
 
+function testDescribeModelStateForLoading() {
+  const { summary, detail } = describeModelState({
+    ...createDefaultModelState(),
+    status: "loading"
+  });
+
+  assert.equal(summary, "Opening local model...");
+  assert.ok(detail.includes("Using"));
+}
+
 function run() {
   testFormatByteCount();
   testNormalizeModelStateUsesDefaults();
   testNormalizeModelStatePreservesProgress();
   testDescribeModelStateForDownload();
   testDescribeModelStateForReady();
+  testDescribeModelStateForLoading();
   console.log("model_cache tests: OK");
 }
 

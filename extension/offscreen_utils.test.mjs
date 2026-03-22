@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { buildPrompt, normalizeOutput, REDACTION_PROMPT } from "./offscreen_utils.mjs";
+import { buildCorrectionPrompt, buildPrompt, normalizeOutput, REDACTION_PROMPT } from "./offscreen_utils.mjs";
 
 const PLACEHOLDER_NUMBERED_EXAMPLES = [
   "[NAME 1]",
@@ -84,6 +84,29 @@ function testBuildPromptWithNoCategoriesEnabled() {
 
   assert.ok(prompt.includes("No PII categories are enabled"));
   assert.ok(prompt.includes("Return the input unchanged"));
+}
+
+function testBuildCorrectionPromptMentionsDisabledPlaceholders() {
+  const prompt = buildCorrectionPrompt(
+    "My name is Noor and PAN: ABCPK1234D.",
+    {
+      categories: {
+        identityContact: true,
+        governmentLegal: false,
+        financialPayment: false,
+        medical: false,
+        credentialsSecrets: false,
+        networkDevice: false,
+        businessCase: false
+      }
+    },
+    ["PAN"]
+  );
+
+  assert.ok(prompt.includes("Correction for previous attempt:"));
+  assert.ok(prompt.includes("The previous attempt incorrectly used disabled placeholder tags: [PAN N]."));
+  assert.ok(prompt.includes("Leave values from disabled categories unchanged."));
+  assert.ok(prompt.includes("INPUT:\nMy name is Noor and PAN: ABCPK1234D."));
 }
 
 function testPromptListsAllPlaceholders() {
@@ -172,6 +195,16 @@ function testPromptIncludesUsernameExample() {
   assert.ok(REDACTION_PROMPT.includes("Please remove bank details if present."));
 }
 
+function testPromptIncludesShortNameExample() {
+  assert.ok(REDACTION_PROMPT.includes("My name is Noor."));
+  assert.ok(REDACTION_PROMPT.includes("My name is [NAME 1]."));
+}
+
+function testPromptIncludesNameWithPanLeftUntouchedExample() {
+  assert.ok(REDACTION_PROMPT.includes("My name is Noor and my PAN: ABCDE1234F."));
+  assert.ok(REDACTION_PROMPT.includes("My name is [NAME 1] and my PAN: ABCDE1234F."));
+}
+
 function testPromptIncludesDobAndIdentifierExamples() {
   assert.ok(REDACTION_PROMPT.includes("The insured was born on January 7, 1985."));
   assert.ok(REDACTION_PROMPT.includes("Her next appointment is on 2026-03-03 at 10:30 AM."));
@@ -222,6 +255,7 @@ function run() {
   testBuildPrompt();
   testBuildPromptWithScopedCategories();
   testBuildPromptWithNoCategoriesEnabled();
+  testBuildCorrectionPromptMentionsDisabledPlaceholders();
   testPromptListsAllPlaceholders();
   testPromptIncludesCriticalRules();
   testPromptIncludesFormattingRule();
@@ -232,6 +266,8 @@ function run() {
   testPromptIncludesNameVariantExample();
   testPromptIncludesHeaderExample();
   testPromptIncludesUsernameExample();
+  testPromptIncludesShortNameExample();
+  testPromptIncludesNameWithPanLeftUntouchedExample();
   testPromptIncludesDobAndIdentifierExamples();
   testNormalizeOutputStripsEndOfTurn();
   testNormalizeOutputStripsLeadingModelTag();

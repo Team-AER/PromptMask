@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "PromptMask",
   "version": "0.1.0",
-  "description": "Run Gemma 3n WebGPU inference offscreen with MediaPipe.",
+  "description": "Redact sensitive information from your AI prompts before you hit send. 100% private, on-device.",
   "permissions": ["offscreen", "scripting", "storage", "unlimitedStorage"],
   "host_permissions": [
     "https://huggingface.co/*",
@@ -20,7 +20,7 @@
     "https://www.perplexity.ai/*"
   ],
   "action": {
-    "default_title": "Gemma",
+    "default_title": "PromptMask",
     "default_popup": "popup.html"
   },
   "background": {

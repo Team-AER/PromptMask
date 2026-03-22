@@ -86,65 +86,87 @@ const CATEGORY_RULES = {
   ]
 };
 
-const PROMPT_EXAMPLES = `Examples:
-Input: Payroll setup for Sam — SSN: 123-45-6789 (dummy).
-Output: Payroll setup for [NAME 1] — SSN: [SSN 1] (dummy).
-Input: Tax ID 12-3456789 or SIN 123-456-789.
-Output: Tax ID [SSN 1] or SIN [SSN 2].
-Input: Hi, I'm Priya Nair. Please update my address to 14B, Lakeview Apartments, 3rd Cross, Indiranagar, Bengaluru 560038. You can reach me at +91 98765 43210 or priya.nair17@example.com. DOB: 1992-08-14.
-Output: Hi, I'm [NAME 1]. Please update my address to [ADDRESS 1]. You can reach me at [PHONE 1] or [EMAIL 1]. [DATE_OF_BIRTH 1].
-Input: Invoice INV-2026-00173 for case TCK-556201.
-Ship to: Wellness Clinic, 2nd Floor, 18 Baner Road, Pune 411045.
-Output: Invoice [INVOICE_ID 1] for case [CASE_ID 1].
-Ship to: [ADDRESS 1].
-Input: Neha Kulkarni (Neha K.) approved the request.
-Output: [NAME 1] ([NAME 2]) approved the request.
-Input: From: Neha Kulkarni neha.kulkarni+support@example.com
-To: security@kwc.example.com
-Date: 2026-01-13
-Subject: Re: Case TCK-556201 — request for redacted logs
-Output: From: [NAME 1] [EMAIL 1]
-To: [EMAIL 2]
-Date: 2026-01-13
-Subject: Re: Case [CASE_ID 1] — request for redacted logs
-Input: Ship the replacement to 480 West Fulton Market, Suite 900, Chicago, IL 60661, United States.
-Output: Ship the replacement to [ADDRESS 1].
-Input: The insured was born on January 7, 1985. Her next appointment is on 2026-03-03 at 10:30 AM.
-Output: The insured was born on [DATE_OF_BIRTH 1]. Her next appointment is on 2026-03-03 at 10:30 AM.
-Input: Remit payment for order ORD-2026-77831 and invoice INV-2026-01487. Keep legal hold HOLD-2026-BPS-44 attached to case CASE-OPS-2026-2194.
-Output: Remit payment for order [ORDER_ID 1] and invoice [INVOICE_ID 1]. Keep legal hold [CASE_ID 1] attached to case [CASE_ID 2].
-Input: Contact ar@brightpathsystems.com or julia.reyes@redstoneadvisory.com for follow-up.
-Output: Contact [EMAIL 1] or [EMAIL 2] for follow-up.
-Input: Account username is neha.kulkarni91. Please remove bank details if present.
-Output: Account username is [USERNAME 1]. Please remove bank details if present.
-Input: Alice emailed Bob at bob@x.com. Alice's SSN is 111-22-3333 and Bob's is 444-55-6666.
-Output: [NAME 1] emailed [NAME 2] at [EMAIL 1]. [NAME 1]'s SSN is [SSN 1] and [NAME 2]'s is [SSN 2].`;
+const PROMPT_EXAMPLES = [
+  {
+    categories: ["identityContact", "governmentLegal"],
+    input: "Payroll setup for Sam — SSN: 123-45-6789 (dummy).",
+    output: "Payroll setup for [NAME 1] — SSN: [SSN 1] (dummy)."
+  },
+  {
+    categories: ["governmentLegal"],
+    input: "Tax ID 12-3456789 or SIN 123-456-789.",
+    output: "Tax ID [SSN 1] or SIN [SSN 2]."
+  },
+  {
+    categories: ["identityContact"],
+    input:
+      "Hi, I'm Priya Nair. Please update my address to 14B, Lakeview Apartments, 3rd Cross, Indiranagar, Bengaluru 560038. You can reach me at +91 98765 43210 or priya.nair17@example.com. DOB: 1992-08-14.",
+    output:
+      "Hi, I'm [NAME 1]. Please update my address to [ADDRESS 1]. You can reach me at [PHONE 1] or [EMAIL 1]. [DATE_OF_BIRTH 1]."
+  },
+  {
+    categories: ["identityContact", "businessCase"],
+    input: "Invoice INV-2026-00173 for case TCK-556201.\nShip to: Wellness Clinic, 2nd Floor, 18 Baner Road, Pune 411045.",
+    output: "Invoice [INVOICE_ID 1] for case [CASE_ID 1].\nShip to: [ADDRESS 1]."
+  },
+  {
+    categories: ["identityContact"],
+    input: "Neha Kulkarni (Neha K.) approved the request.",
+    output: "[NAME 1] ([NAME 2]) approved the request."
+  },
+  {
+    categories: ["identityContact", "businessCase"],
+    input:
+      "From: Neha Kulkarni neha.kulkarni+support@example.com\nTo: security@kwc.example.com\nDate: 2026-01-13\nSubject: Re: Case TCK-556201 — request for redacted logs",
+    output:
+      "From: [NAME 1] [EMAIL 1]\nTo: [EMAIL 2]\nDate: 2026-01-13\nSubject: Re: Case [CASE_ID 1] — request for redacted logs"
+  },
+  {
+    categories: ["identityContact"],
+    input: "Ship the replacement to 480 West Fulton Market, Suite 900, Chicago, IL 60661, United States.",
+    output: "Ship the replacement to [ADDRESS 1]."
+  },
+  {
+    categories: ["identityContact"],
+    input: "The insured was born on January 7, 1985. Her next appointment is on 2026-03-03 at 10:30 AM.",
+    output: "The insured was born on [DATE_OF_BIRTH 1]. Her next appointment is on 2026-03-03 at 10:30 AM."
+  },
+  {
+    categories: ["businessCase"],
+    input:
+      "Remit payment for order ORD-2026-77831 and invoice INV-2026-01487. Keep legal hold HOLD-2026-BPS-44 attached to case CASE-OPS-2026-2194.",
+    output:
+      "Remit payment for order [ORDER_ID 1] and invoice [INVOICE_ID 1]. Keep legal hold [CASE_ID 1] attached to case [CASE_ID 2]."
+  },
+  {
+    categories: ["identityContact"],
+    input: "Contact ar@brightpathsystems.com or julia.reyes@redstoneadvisory.com for follow-up.",
+    output: "Contact [EMAIL 1] or [EMAIL 2] for follow-up."
+  },
+  {
+    categories: ["identityContact"],
+    input: "My name is Noor.",
+    output: "My name is [NAME 1]."
+  },
+  {
+    categories: ["identityContact"],
+    input: "My name is Noor and my PAN: ABCDE1234F.",
+    output: "My name is [NAME 1] and my PAN: ABCDE1234F."
+  },
+  {
+    categories: ["identityContact"],
+    input: "Account username is neha.kulkarni91. Please remove bank details if present.",
+    output: "Account username is [USERNAME 1]. Please remove bank details if present."
+  },
+  {
+    categories: ["identityContact", "governmentLegal"],
+    input: "Alice emailed Bob at bob@x.com. Alice's SSN is 111-22-3333 and Bob's is 444-55-6666.",
+    output: "[NAME 1] emailed [NAME 2] at [EMAIL 1]. [NAME 1]'s SSN is [SSN 1] and [NAME 2]'s is [SSN 2]."
+  }
+];
 
 const ALL_CATEGORY_KEYS = Object.keys(CATEGORY_PLACEHOLDER_LINES);
-
-function buildRedactionPrompt(enabledCategoryKeys) {
-  const placeholderLines = enabledCategoryKeys
-    .flatMap((cat) => CATEGORY_PLACEHOLDER_LINES[cat] ?? [])
-    .join("\n");
-
-  const rules = [
-    ...GENERIC_NUMBERING_RULES,
-    ...enabledCategoryKeys.flatMap((cat) => CATEGORY_RULES[cat] ?? [])
-  ].join("\n");
-
-  return `${PROMPT_PREAMBLE}
-
-Placeholders (use sequential numbering per category, starting at 1):
-${placeholderLines}
-
-Numbering rules:
-${rules}
-
-${PROMPT_EXAMPLES}
-`;
-}
-
-export const REDACTION_PROMPT = buildRedactionPrompt(ALL_CATEGORY_KEYS);
+const PLACEHOLDER_KEY_PATTERN = /\[([A-Z_]+)\s+\d+\]/g;
 
 export const CATEGORY_TO_PLACEHOLDER_KEYS = {
   identityContact: ["NAME", "PHONE", "EMAIL", "USERNAME", "ADDRESS", "DATE_OF_BIRTH"],
@@ -156,13 +178,83 @@ export const CATEGORY_TO_PLACEHOLDER_KEYS = {
   businessCase: ["ORDER_ID", "INVOICE_ID", "CASE_ID"]
 };
 
-export function buildPrompt(text, redactionConfig = null) {
+function buildRedactionPrompt(enabledCategoryKeys) {
+  const placeholderLines = enabledCategoryKeys
+    .flatMap((cat) => CATEGORY_PLACEHOLDER_LINES[cat] ?? [])
+    .join("\n");
+  const allowedPlaceholderTags = enabledCategoryKeys
+    .flatMap((cat) => CATEGORY_TO_PLACEHOLDER_KEYS[cat] ?? [])
+    .map((key) => `[${key} N]`)
+    .join(", ");
+
+  const rules = [
+    ...GENERIC_NUMBERING_RULES,
+    ...enabledCategoryKeys.flatMap((cat) => CATEGORY_RULES[cat] ?? [])
+  ].join("\n");
+  const examples = renderPromptExamples(enabledCategoryKeys);
+
+  return `${PROMPT_PREAMBLE}
+
+Placeholders (use sequential numbering per category, starting at 1):
+${placeholderLines}
+
+Allowed placeholders for this run:
+${allowedPlaceholderTags}
+
+Category toggle rule:
+- Only use the allowed placeholder tags listed above.
+- If text belongs to a disabled category, leave that text unchanged.
+- Never output a placeholder from a disabled category.
+
+Numbering rules:
+${rules}
+
+${examples}
+`;
+}
+
+function renderPromptExamples(enabledCategoryKeys) {
+  const enabledSet = new Set(enabledCategoryKeys);
+  const compatibleExamples = PROMPT_EXAMPLES.filter((example) =>
+    example.categories.every((categoryKey) => enabledSet.has(categoryKey))
+  );
+
+  if (compatibleExamples.length === 0) {
+    return "Examples:\nInput: Leave the input unchanged when no allowed placeholder applies.\nOutput: Leave the input unchanged when no allowed placeholder applies.";
+  }
+
+  return `Examples:\n${compatibleExamples
+    .map((example) => `Input: ${example.input}\nOutput: ${example.output}`)
+    .join("\n")}`;
+}
+
+export const REDACTION_PROMPT = buildRedactionPrompt(ALL_CATEGORY_KEYS);
+
+export function getEnabledCategoryKeys(redactionConfig = null) {
   const categories = redactionConfig?.categories;
+  if (!categories || typeof categories !== "object") {
+    return [...ALL_CATEGORY_KEYS];
+  }
+
+  return ALL_CATEGORY_KEYS.filter((key) => categories[key] !== false);
+}
+
+export function getEnabledPlaceholderKeys(redactionConfig = null) {
+  const explicitPlaceholders = redactionConfig?.enabledPlaceholders;
+  if (Array.isArray(explicitPlaceholders)) {
+    return [...new Set(explicitPlaceholders.filter((key) => typeof key === "string" && key))];
+  }
+
+  return getEnabledCategoryKeys(redactionConfig).flatMap(
+    (categoryKey) => CATEGORY_TO_PLACEHOLDER_KEYS[categoryKey] ?? []
+  );
+}
+
+export function buildPrompt(text, redactionConfig = null) {
   let promptBody;
+  const enabledKeys = getEnabledCategoryKeys(redactionConfig);
 
-  if (categories && typeof categories === "object") {
-    const enabledKeys = ALL_CATEGORY_KEYS.filter((key) => categories[key] !== false);
-
+  if (redactionConfig?.categories && typeof redactionConfig.categories === "object") {
     if (enabledKeys.length === 0) {
       promptBody = `${PROMPT_PREAMBLE}\n\nNo PII categories are enabled. Return the input unchanged.`;
     } else if (enabledKeys.length === ALL_CATEGORY_KEYS.length) {
@@ -175,6 +267,47 @@ export function buildPrompt(text, redactionConfig = null) {
   }
 
   return `<start_of_turn>user\n${promptBody}\n\nINPUT:\n${text}\n<end_of_turn>\n<start_of_turn>model\n`;
+}
+
+export function buildCorrectionPrompt(text, redactionConfig = null, disallowedPlaceholderKeys = []) {
+  const retryBody = buildPrompt(text, redactionConfig).replace(
+    "\n\nINPUT:\n",
+    `\n\nCorrection for previous attempt:
+- Start over from the original input below.
+- The previous attempt incorrectly used disabled placeholder tags: ${disallowedPlaceholderKeys
+      .map((key) => `[${key} N]`)
+      .join(", ")}.
+- Leave values from disabled categories unchanged.
+- Keep allowed-category redactions only.
+- Return ONLY the corrected redacted text.\n\nINPUT:\n`
+  );
+
+  return retryBody;
+}
+
+export function extractPlaceholderKeys(text) {
+  const placeholderKeys = [];
+  const seen = new Set();
+
+  for (const match of String(text ?? "").matchAll(PLACEHOLDER_KEY_PATTERN)) {
+    const key = match[1];
+    if (!key || seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    placeholderKeys.push(key);
+  }
+
+  return placeholderKeys;
+}
+
+export function findDisallowedPlaceholderKeys(text, redactionConfig = null) {
+  const enabledPlaceholderKeys = new Set(getEnabledPlaceholderKeys(redactionConfig));
+  if (enabledPlaceholderKeys.size === 0) {
+    return extractPlaceholderKeys(text);
+  }
+
+  return extractPlaceholderKeys(text).filter((key) => !enabledPlaceholderKeys.has(key));
 }
 
 export function normalizeOutput(text) {

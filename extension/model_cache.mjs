@@ -252,7 +252,7 @@ export async function getModelAssetReader() {
     const totalBytes =
       Number(cachedResponse.headers.get("content-length")) || MODEL_EXPECTED_BYTES;
     await writeModelState({
-      status: "ready",
+      status: "loading",
       downloadedBytes: totalBytes,
       totalBytes,
       error: null
@@ -304,14 +304,6 @@ export async function getModelAssetReader() {
 
   const cacheWritePromise = cache
     .put(MODEL_DOWNLOAD_URL, cacheResponse)
-    .then(async () => {
-      await writeModelState({
-        status: "ready",
-        downloadedBytes: totalBytes,
-        totalBytes,
-        error: null
-      });
-    })
     .catch(async (error) => {
       await cache.delete(MODEL_DOWNLOAD_URL);
       await writeModelState({

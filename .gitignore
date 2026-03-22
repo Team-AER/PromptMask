@@ -17,7 +17,16 @@ snippet_*_only.txt
 # Bundled LiteRT-LM CLI binary
 lit
 
+# Local JS tooling / browser automation artifacts
+node_modules/
+.playwright-mcp/
+.playwright-mcp.config.json
+test_ext_load.mjs
+
 #plans and PRD
 docs/
 
 .DS_Store
+
+# Claude Code
+.claude/
