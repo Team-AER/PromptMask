@@ -196,6 +196,13 @@ function isContentEditableComposer(el) {
   return previousValue === "true" || previousValue === "plaintext-only";
 }
 
+function isProseMirrorEditor(el) {
+  if (!(el instanceof HTMLElement)) {
+    return false;
+  }
+  return el.classList.contains("ProseMirror") || !!el.closest(".ProseMirror");
+}
+
 function isTextInputComposer(el) {
   return el instanceof HTMLTextAreaElement || el instanceof HTMLInputElement;
 }
@@ -411,37 +418,85 @@ function placeCaretAtEnd(el) {
   }
 }
 
-function setContentEditableComposerText(el, value) {
-  el.focus();
-
+function selectAllContent(el) {
   const selection = window.getSelection();
   const range = document.createRange();
   range.selectNodeContents(el);
   selection?.removeAllRanges();
   selection?.addRange(range);
+  return range;
+}
 
-  dispatchComposerBeforeInput(el, value, "insertText");
+async function setContentEditableComposerText(el, value) {
+  el.focus();
 
-  if (typeof document.execCommand === "function") {
-    try {
-      document.execCommand("insertText", false, value);
-    } catch {
-      // Fall through to DOM replacement when execCommand is blocked.
-    }
+  // Strategy 1: execCommand selectAll + insertText.  execCommand("selectAll")
+  // updates both the browser's native selection AND framework-managed selection
+  // (e.g., ProseMirror observes the selectionchange event), unlike manual
+  // window.getSelection() range manipulation which frameworks may ignore.
+  try {
+    document.execCommand("selectAll");
+  } catch { /* ignored */ }
+  try {
+    document.execCommand("insertText", false, value);
+  } catch { /* ignored */ }
+  if (composerReflectsValue(el, value)) {
+    dispatchComposerInput(el, value);
+    return;
+  }
+  // Allow a frame for frameworks that process commands asynchronously.
+  await waitForUiUpdate();
+  if (composerReflectsValue(el, value)) {
+    dispatchComposerInput(el, value);
+    return;
   }
 
-  if (!composerReflectsValue(el, value)) {
-    range.selectNodeContents(el);
+  // Strategy 2: Synthetic beforeinput — framework-managed editors (Lexical,
+  // Slate) update their internal state from this event and flush the DOM
+  // synchronously.
+  selectAllContent(el);
+  dispatchComposerBeforeInput(el, value, "insertText");
+  if (composerReflectsValue(el, value)) {
+    dispatchComposerInput(el, value);
+    return;
+  }
+  await waitForUiUpdate();
+  if (composerReflectsValue(el, value)) {
+    dispatchComposerInput(el, value);
+    return;
+  }
+
+  // Strategy 3: Synthetic paste via ClipboardEvent — ProseMirror handles paste
+  // events and reads from the DataTransfer to update its document model.
+  try {
+    selectAllContent(el);
+    const dt = new DataTransfer();
+    dt.setData("text/plain", value);
+    el.dispatchEvent(new ClipboardEvent("paste", {
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+      clipboardData: dt
+    }));
+  } catch { /* ignored */ }
+  await waitForUiUpdate();
+  if (composerReflectsValue(el, value)) {
+    return;
+  }
+
+  // Strategy 4: Direct DOM replacement — last resort for plain contenteditable
+  // editors.  Skip for ProseMirror since direct DOM mutations are reverted by
+  // its MutationObserver and leave the framework state stale.
+  if (!isProseMirrorEditor(el)) {
+    const range = selectAllContent(el);
     range.deleteContents();
     insertPlainTextWithLineBreaks(range, value);
     placeCaretAtEnd(el);
-    dispatchComposerBeforeInput(el, value, "insertFromPaste");
+    dispatchComposerInput(el, value);
   }
-
-  dispatchComposerInput(el, value);
 }
 
-function setComposerText(el, value) {
+async function setComposerText(el, value) {
   const composer = resolveComposerElement(el);
   if (!composer) {
     return;
@@ -461,7 +516,7 @@ function setComposerText(el, value) {
   }
 
   if (isContentEditableComposer(composer)) {
-    setContentEditableComposerText(composer, value);
+    await setContentEditableComposerText(composer, value);
     return;
   }
 
@@ -478,7 +533,7 @@ async function applyComposerText(composer, value) {
   const targets = [targetComposer, ...findAlternateComposerTargets(targetComposer)];
   for (let attempt = 0; attempt < 2; attempt += 1) {
     for (const target of targets) {
-      setComposerText(target, value);
+      await setComposerText(target, value);
     }
     await waitForUiUpdate();
     if (targets.some((target) => composerReflectsValue(target, value))) {
@@ -1217,8 +1272,10 @@ function handleModelProgress(modelState) {
     hideSpinner();
     showDownloadProgress("Downloading Redaction Model for first use...");
   } else if (status === "loading") {
-    hideSpinner();
-    showDownloadProgress("Loading Model...");
+    // Loading from cache — show the spinner instead of the heavy download
+    // banner so returning users don't think the model is re-downloading.
+    hideDownloadProgress();
+    showSpinner();
   } else if (status === "ready") {
     state.modelReadyForSession = true;
     hideDownloadProgress();
@@ -1262,8 +1319,8 @@ async function redactAndPreview({ composer, sendButton }) {
       hideSpinner();
       showDownloadProgress("Downloading Redaction Model for first use...");
     } else if (modelStatus === "loading") {
-      hideSpinner();
-      showDownloadProgress("Loading Model...");
+      hideDownloadProgress();
+      showSpinner();
     } else {
       state.modelReadyForSession = true;
       hideDownloadProgress();
@@ -1307,7 +1364,15 @@ async function redactAndPreview({ composer, sendButton }) {
     suppressInputReset = false;
     showToast("\u2705 Redacted \u2014 press Enter to send", false);
   } catch (err) {
-    setComposerText(composer, originalText);
+    // Only attempt restoration if the composer was actually changed; blindly
+    // writing back the original text through the same broken path would
+    // corrupt the composer (e.g., appending instead of replacing on
+    // ProseMirror editors).
+    if (!composerReflectsValue(composer, originalText)) {
+      try {
+        await setComposerText(composer, originalText);
+      } catch { /* best-effort restoration */ }
+    }
     const message = formatError(err);
     console.error("[Gemma Redaction] Redaction failed:", err);
     showToast(`Redaction failed: ${message}`, true);
