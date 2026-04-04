@@ -241,7 +241,7 @@ export async function findDefaultModel(cwd) {
   return DEFAULT_MODEL_CANDIDATES[0];
 }
 
-async function runLitInference({ litPath, model, backend, prompt }) {
+export async function runLitInference({ litPath, model, backend, prompt }) {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "promptmask-redaction-"));
   const promptPath = path.join(tempDir, "prompt.txt");
 

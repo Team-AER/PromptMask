@@ -1,0 +1,474 @@
+{
+  "model": "gemma3-1b",
+  "backend": "cpu",
+  "snippetsPath": "/Users/nidhibharani/Developer/PromptMask/test_redaction_category_toggle.txt",
+  "total": 21,
+  "pass": 21,
+  "warn": 0,
+  "fail": 0,
+  "error": 0,
+  "results": [
+    {
+      "id": 1,
+      "title": "CATEGORY TOGGLE TEST SNIPPET 1: identityContact ON",
+      "metadata": {
+        "Broad category": "identityContact",
+        "Expected redacted": "NAME, PHONE, EMAIL, USERNAME, ADDRESS, DATE_OF_BIRTH",
+        "Expected untouched (other categories)": "SSN, CREDIT_CARD, INVOICE_ID"
+      },
+      "text": "Hi, my name is Olivia Parker and my date of birth is 04/22/1993.\nYou can reach me at olivia.parker@protonmail.com or call +1-312-555-0142.\nMy username on the portal is olivia_parker93.\nShip the documents to 88 Park Avenue, Apt 3C, Chicago, IL 60601.\nFor reference, my SSN is 123-45-6789, card number 4111 1111 1111 1111,\nand invoice INV-2026-00501.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "Olivia Parker (123-45-6789)",
+      "stderr": "",
+      "verdict": "pass",
+      "reasons": [
+        "All category toggle checks passed."
+      ],
+      "positiveRedactions": [],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 2,
+      "title": "CATEGORY TOGGLE TEST SNIPPET 2: identityContact OFF",
+      "metadata": {
+        "Broad category": "identityContact",
+        "Expected untouched": "NAME, PHONE, EMAIL, USERNAME, ADDRESS, DATE_OF_BIRTH",
+        "Expected redacted (other categories)": "SSN, CREDIT_CARD, INVOICE_ID"
+      },
+      "text": "Hi, my name is Olivia Parker and my date of birth is 04/22/1993.\nYou can reach me at olivia.parker@protonmail.com or call +1-312-555-0142.\nMy username on the portal is olivia_parker93.\nShip the documents to 88 Park Avenue, Apt 3C, Chicago, IL 60601.\nFor reference, my SSN is 123-45-6789, card number 4111 1111 1111 1111,\nand invoice INV-2026-00501.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "Tax ID [GST 1] or SIN [GST 2].",
+      "stderr": "",
+      "verdict": "pass",
+      "reasons": [
+        "All category toggle checks passed."
+      ],
+      "positiveRedactions": [],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 3,
+      "title": "CATEGORY TOGGLE TEST SNIPPET 3: governmentLegal ON",
+      "metadata": {
+        "Broad category": "governmentLegal",
+        "Expected redacted": "SSN, ITIN, EIN, DRIVER_LICENSE",
+        "Expected untouched (other categories)": "NAME, EMAIL, CREDIT_CARD"
+      },
+      "text": "Employee Nathan Brooks submitted his government documents.\nSSN: 234-56-7890\nITIN: 900-80-1234\nEIN: 36-4567890\nDriver's license number: D400-9988-7766\nContact him at nathan.brooks@example.com.\nHis Visa card is 4222 2222 2222 2222, exp 03/28.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "[SSN 1], [SSN 2], [GST N], [DRIVER_LICENSE N]",
+      "stderr": "",
+      "verdict": "pass",
+      "reasons": [
+        "All category toggle checks passed."
+      ],
+      "positiveRedactions": [],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 4,
+      "title": "CATEGORY TOGGLE TEST SNIPPET 4: governmentLegal OFF",
+      "metadata": {
+        "Broad category": "governmentLegal",
+        "Expected untouched": "SSN, ITIN, EIN, DRIVER_LICENSE",
+        "Expected redacted (other categories)": "NAME, EMAIL, CREDIT_CARD"
+      },
+      "text": "Employee Nathan Brooks submitted his government documents.\nSSN: 234-56-7890\nITIN: 900-80-1234\nEIN: 36-4567890\nDriver's license number: D400-9988-7766\nContact him at nathan.brooks@example.com.\nHis Visa card is 4222 2222 2222 2222, exp 03/28.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "Nathan Brooks submitted his government documents.\nSSN: 234-56-7890\nITIN: 900-80-1234\nEIN: 36-4567890\nDriver's license number: D400-9988-7766\nContact him at nathan.brooks@example.com.\nHis Visa card is 4222 2222 2222, exp 03/28.",
+      "stderr": "",
+      "verdict": "pass",
+      "reasons": [
+        "All category toggle checks passed."
+      ],
+      "positiveRedactions": [],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 5,
+      "title": "CATEGORY TOGGLE TEST SNIPPET 5: financialPayment ON",
+      "metadata": {
+        "Broad category": "financialPayment",
+        "Expected redacted": "BANK_ACCOUNT, CREDIT_CARD, CARD_EXPIRY, CARD_CVV, PAYPAL",
+        "Expected untouched (other categories)": "NAME, SSN, ORDER_ID"
+      },
+      "text": "Customer Charlotte Evans wants to update payment information.\nCredit card: 5500 0000 0000 0004, expiry 12/27, CVV 331.\nBank account number: 20345678901234, routing number: 021000021.\nHer PayPal ID is CEVA-PP-4412.\nFor background, her SSN is 345-67-8901 and the related order is ORD-2026-33192.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "Customer Charlotte Evans wants to update payment information.\nCredit card: 5500 0000 0004, expiry 12/27, CVV 331.\nBank account number: 20345678901234, routing number: 021000021.\nHer PayPal ID is CEVA-PP-4412.\nFor background, her SSN is 345-67-8901 and the related order is ORD-2026-33192.",
+      "stderr": "",
+      "verdict": "pass",
+      "reasons": [
+        "All category toggle checks passed."
+      ],
+      "positiveRedactions": [],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 6,
+      "title": "CATEGORY TOGGLE TEST SNIPPET 6: financialPayment OFF",
+      "metadata": {
+        "Broad category": "financialPayment",
+        "Expected untouched": "BANK_ACCOUNT, CREDIT_CARD, CARD_EXPIRY, CARD_CVV, PAYPAL",
+        "Expected redacted (other categories)": "NAME, SSN, ORDER_ID"
+      },
+      "text": "Customer Charlotte Evans wants to update payment information.\nCredit card: 5500 0000 0000 0004, expiry 12/27, CVV 331.\nBank account number: 20345678901234, routing number: 021000021.\nHer PayPal ID is CEVA-PP-4412.\nFor background, her SSN is 345-67-8901 and the related order is ORD-2026-33192.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "Payroll setup for Sam — SSN: 123-45-6789 (dummy).",
+      "stderr": "",
+      "verdict": "pass",
+      "reasons": [
+        "All category toggle checks passed."
+      ],
+      "positiveRedactions": [],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 7,
+      "title": "CATEGORY TOGGLE TEST SNIPPET 7: medical ON",
+      "metadata": {
+        "Broad category": "medical",
+        "Expected redacted": "INSURANCE_ID, MRN",
+        "Expected untouched (other categories)": "NAME, PHONE, ADDRESS"
+      },
+      "text": "Patient Diana Foster was admitted with the following records.\nInsurance ID: BCBS-55443322\nMedical record number: MRN-40098712\nShe can be reached at +1 (408) 555-0771.\nHome address: 310 Cedar Lane, San Jose, CA 95126.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "[INSURANCE_ID 1], [MRN 1]",
+      "stderr": "",
+      "verdict": "pass",
+      "reasons": [
+        "All category toggle checks passed."
+      ],
+      "positiveRedactions": [],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 8,
+      "title": "CATEGORY TOGGLE TEST SNIPPET 8: medical OFF",
+      "metadata": {
+        "Broad category": "medical",
+        "Expected untouched": "INSURANCE_ID, MRN",
+        "Expected redacted (other categories)": "NAME, PHONE, ADDRESS"
+      },
+      "text": "Patient Diana Foster was admitted with the following records.\nInsurance ID: BCBS-55443322\nMedical record number: MRN-40098712\nShe can be reached at +1 (408) 555-0771.\nHome address: 310 Cedar Lane, San Jose, CA 95126.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "",
+      "stderr": "",
+      "verdict": "pass",
+      "reasons": [
+        "All category toggle checks passed."
+      ],
+      "positiveRedactions": [],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 9,
+      "title": "CATEGORY TOGGLE TEST SNIPPET 9: credentialsSecrets ON",
+      "metadata": {
+        "Broad category": "credentialsSecrets",
+        "Expected redacted": "API_KEY, ACCESS_TOKEN",
+        "Expected untouched (other categories)": "NAME, EMAIL, CASE_ID"
+      },
+      "text": "Developer Tyler Morrison reported a credential leak.\nHis API key is sk-abc999def888ghi777jkl666mno555pqr444.\nThe compromised access token is ghp_aB1cD2eF3gH4iJ5kL6mN7oP8qR9sT0uV.\nContact him at tyler.morrison@devteam.io regarding case TCK-881234.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "Developer Tyler Morrison reported an credential leak.\nHis API key was sk-abc999def888ghi777jkl666mno555pqr444.\nThe compromised access token was ghp_aB1cD2eF3gH4iJ5kL6mN7oP8qR9sT0uV.\nContact him at tyler.morrison@devteam.io regarding case TCK-881234.",
+      "stderr": "",
+      "verdict": "pass",
+      "reasons": [
+        "All category toggle checks passed."
+      ],
+      "positiveRedactions": [],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 10,
+      "title": "CATEGORY TOGGLE TEST SNIPPET 10: credentialsSecrets OFF",
+      "metadata": {
+        "Broad category": "credentialsSecrets",
+        "Expected untouched": "API_KEY, ACCESS_TOKEN",
+        "Expected redacted (other categories)": "NAME, EMAIL, CASE_ID"
+      },
+      "text": "Developer Tyler Morrison reported a credential leak.\nHis API key is sk-abc999def888ghi777jkl666mno555pqr444.\nThe compromised access token is ghp_aB1cD2eF3gH4iJ5kL6mN7oP8qR9sT0uV.\nContact him at tyler.morrison@devteam.io regarding case TCK-881234.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "",
+      "stderr": "",
+      "verdict": "pass",
+      "reasons": [
+        "All category toggle checks passed."
+      ],
+      "positiveRedactions": [],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 11,
+      "title": "CATEGORY TOGGLE TEST SNIPPET 11: networkDevice ON",
+      "metadata": {
+        "Broad category": "networkDevice",
+        "Expected redacted": "IP_ADDRESS, DEVICE_ID",
+        "Expected untouched (other categories)": "NAME, EMAIL, INVOICE_ID"
+      },
+      "text": "Security analyst Megan Collins flagged suspicious activity.\nSource IP: 192.168.10.42\nSecondary IP: 10.0.0.88\nDevice identifier: A9B8C7D6E5F4\nEndpoint serial: X1Y2Z3W4V5U6\nContact Megan at megan.collins@secops.net about invoice INV-2026-07744.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "Security analyst Megan Collins flagged suspicious activity.\nSource IP: [IP_ADDRESS 1], [IP_ADDRESS 2], [DEVICE_ID 1]\nSecondary IP: [DEVICE_ID 1]\nEndpoint serial: [DEVICE_ID 1]\nContact Megan at [MEGAN_COLLINS@SEC_OPS_NET] about invoice INV-2026-07744.",
+      "stderr": "",
+      "verdict": "pass",
+      "reasons": [
+        "All category toggle checks passed."
+      ],
+      "positiveRedactions": [],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 12,
+      "title": "CATEGORY TOGGLE TEST SNIPPET 12: networkDevice OFF",
+      "metadata": {
+        "Broad category": "networkDevice",
+        "Expected untouched": "IP_ADDRESS, DEVICE_ID",
+        "Expected redacted (other categories)": "NAME, EMAIL, INVOICE_ID"
+      },
+      "text": "Security analyst Megan Collins flagged suspicious activity.\nSource IP: 192.168.10.42\nSecondary IP: 10.0.0.88\nDevice identifier: A9B8C7D6E5F4\nEndpoint serial: X1Y2Z3W4V5U6\nContact Megan at megan.collins@secops.net about invoice INV-2026-07744.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "Payroll setup for Sam — SSN: 123-45-6789 (dummy).",
+      "stderr": "",
+      "verdict": "pass",
+      "reasons": [
+        "All category toggle checks passed."
+      ],
+      "positiveRedactions": [],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 13,
+      "title": "CATEGORY TOGGLE TEST SNIPPET 13: businessCase ON",
+      "metadata": {
+        "Broad category": "businessCase",
+        "Expected redacted": "ORDER_ID, INVOICE_ID, CASE_ID",
+        "Expected untouched (other categories)": "NAME, PHONE, BANK_ACCOUNT"
+      },
+      "text": "Operations lead Rachel Bennett is tracking the following references.\nOrder: ORD-2026-88321\nInvoice: INV-2026-04455\nTicket: TCK-990122\nCase: CASE-OPS-2026-5501\nLegal hold: HOLD-2026-HR-18\nHer direct line is +1 (646) 555-0933 and her bank account is 11223344556677.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "[ORDER_ID 1], [INVOICE_ID 1], [CASE_ID 1]",
+      "stderr": "",
+      "verdict": "pass",
+      "reasons": [
+        "All category toggle checks passed."
+      ],
+      "positiveRedactions": [],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 14,
+      "title": "CATEGORY TOGGLE TEST SNIPPET 14: businessCase OFF",
+      "metadata": {
+        "Broad category": "businessCase",
+        "Expected untouched": "ORDER_ID, INVOICE_ID, CASE_ID",
+        "Expected redacted (other categories)": "NAME, PHONE, BANK_ACCOUNT"
+      },
+      "text": "Operations lead Rachel Bennett is tracking the following references.\nOrder: ORD-2026-88321\nInvoice: INV-2026-04455\nTicket: TCK-990122\nCase: CASE-OPS-2026-5501\nLegal hold: HOLD-2026-HR-18\nHer direct line is +1 (646) 555-0933 and her bank account is 11223344556677.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "Payroll setup for Rachel Bennett — SSN: [SSN 1] — PAN: ABCDE1234F — GST N",
+      "stderr": "",
+      "verdict": "pass",
+      "reasons": [
+        "All category toggle checks passed."
+      ],
+      "positiveRedactions": [],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 15,
+      "title": "CATEGORY TOGGLE TEST SNIPPET 15: ALL ON except identityContact",
+      "metadata": {
+        "Disabled category": "identityContact",
+        "Expected untouched": "NAME, PHONE, EMAIL, USERNAME, ADDRESS, DATE_OF_BIRTH",
+        "Expected redacted": "SSN, PAN, DRIVER_LICENSE, CREDIT_CARD, BANK_ACCOUNT, INSURANCE_ID, MRN, API_KEY, ACCESS_TOKEN, IP_ADDRESS, DEVICE_ID, ORDER_ID, INVOICE_ID, CASE_ID"
+      },
+      "text": "Ops consultant James Hartley (james.hartley@consultant.com, +1-415-555-0173, born 14/03/1985)\nsigned into the portal as jhartley_ops from 47 Birch Street, Austin, TX 78701.\nGovernment IDs: SSN 456-78-9012, PAN BXPTH1234K, driver's licence D400-9988-7766,\nGST 27AAPFU0939F1ZV.\nPayment: Mastercard 5500 0000 0000 0004, exp 06/29, CVV 737; bank account 40512345678901.\nMedical: insurance BCBS-77654321, MRN MRN-50291834.\nCredentials: API key sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r,\ntoken ghp_Abc123Def456Ghi789Jkl012Mno345PqRs.\nNetwork: source IP 203.0.113.42, device F1E2D3C4B5A6.\nBusiness: order ORD-2026-77421, invoice INV-2026-11593, case TCK-002847.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "Tax ID [GST 1] or SIN [GST 2].",
+      "stderr": "",
+      "verdict": "pass",
+      "reasons": [
+        "All category toggle checks passed."
+      ],
+      "positiveRedactions": [],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 16,
+      "title": "CATEGORY TOGGLE TEST SNIPPET 16: ALL ON except governmentLegal",
+      "metadata": {
+        "Disabled category": "governmentLegal",
+        "Expected untouched": "SSN, PAN, GST, DRIVER_LICENSE",
+        "Expected redacted": "NAME, EMAIL, PHONE, CREDIT_CARD, BANK_ACCOUNT, MRN, API_KEY, IP_ADDRESS, ORDER_ID"
+      },
+      "text": "Ops consultant James Hartley (james.hartley@consultant.com, +1-415-555-0173, born 14/03/1985)\nsigned into the portal as jhartley_ops from 47 Birch Street, Austin, TX 78701.\nGovernment IDs: SSN 456-78-9012, PAN BXPTH1234K, driver's licence D400-9988-7766,\nGST 27AAPFU0939F1ZV.\nPayment: Mastercard 5500 0000 0000 0004, exp 06/29, CVV 737; bank account 40512345678901.\nMedical: insurance BCBS-77654321, MRN MRN-50291834.\nCredentials: API key sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r,\ntoken ghp_Abc123Def456Ghi789Jkl012Mno345PqRs.\nNetwork: source IP 203.0.113.42, device F1E2D3C4B5A6.\nBusiness: order ORD-2026-77421, invoice INV-2026-11593, case TCK-002847.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "",
+      "stderr": "",
+      "verdict": "pass",
+      "reasons": [
+        "All category toggle checks passed."
+      ],
+      "positiveRedactions": [],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 17,
+      "title": "CATEGORY TOGGLE TEST SNIPPET 17: ALL ON except financialPayment",
+      "metadata": {
+        "Disabled category": "financialPayment",
+        "Expected untouched": "BANK_ACCOUNT, CREDIT_CARD, CARD_EXPIRY, CARD_CVV, PAYPAL",
+        "Expected redacted": "NAME, SSN, PAN, MRN, API_KEY, IP_ADDRESS, ORDER_ID"
+      },
+      "text": "Ops consultant James Hartley (james.hartley@consultant.com, +1-415-555-0173, born 14/03/1985)\nsigned into the portal as jhartley_ops from 47 Birch Street, Austin, TX 78701.\nGovernment IDs: SSN 456-78-9012, PAN BXPTH1234K, driver's licence D400-9988-7766,\nGST 27AAPFU0939F1ZV.\nPayment: Mastercard 5500 0000 0000 0004, exp 06/29, CVV 737; bank account 40512345678901.\nMedical: insurance BCBS-77654321, MRN MRN-50291834.\nCredentials: API key sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r,\ntoken ghp_Abc123Def456Ghi789Jkl012Mno345PqRs.\nNetwork: source IP 203.0.113.42, device F1E2D3C4B5A6.\nBusiness: order ORD-2026-77421, invoice INV-2026-11593, case TCK-002847.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "Payroll setup for Sam — SSN: 123-45-6789 (dummy).",
+      "stderr": "",
+      "verdict": "pass",
+      "reasons": [
+        "All category toggle checks passed."
+      ],
+      "positiveRedactions": [],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 18,
+      "title": "CATEGORY TOGGLE TEST SNIPPET 18: ALL ON except medical",
+      "metadata": {
+        "Disabled category": "medical",
+        "Expected untouched": "INSURANCE_ID, MRN",
+        "Expected redacted": "NAME, SSN, CREDIT_CARD, API_KEY, IP_ADDRESS, ORDER_ID"
+      },
+      "text": "Ops consultant James Hartley (james.hartley@consultant.com, +1-415-555-0173, born 14/03/1985)\nsigned into the portal as jhartley_ops from 47 Birch Street, Austin, TX 78701.\nGovernment IDs: SSN 456-78-9012, PAN BXPTH1234K, driver's licence D400-9988-7766,\nGST 27AAPFU0939F1ZV.\nPayment: Mastercard 5500 0000 0000 0004, exp 06/29, CVV 737; bank account 40512345678901.\nMedical: insurance BCBS-77654321, MRN MRN-50291834.\nCredentials: API key sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r,\ntoken ghp_Abc123Def456Ghi789Jkl012Mno345PqRs.\nNetwork: source IP 203.0.113.42, device F1E2D3C4B5A6.\nBusiness: order ORD-2026-77421, invoice INV-2026-11593, case TCK-002847.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "Payroll setup for Sam — SSN: 123-45-6789 (dummy).",
+      "stderr": "",
+      "verdict": "pass",
+      "reasons": [
+        "All category toggle checks passed."
+      ],
+      "positiveRedactions": [],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 19,
+      "title": "CATEGORY TOGGLE TEST SNIPPET 19: ALL ON except credentialsSecrets",
+      "metadata": {
+        "Disabled category": "credentialsSecrets",
+        "Expected untouched": "API_KEY, ACCESS_TOKEN",
+        "Expected redacted": "NAME, SSN, CREDIT_CARD, MRN, IP_ADDRESS, ORDER_ID"
+      },
+      "text": "Ops consultant James Hartley (james.hartley@consultant.com, +1-415-555-0173, born 14/03/1985)\nsigned into the portal as jhartley_ops from 47 Birch Street, Austin, TX 78701.\nGovernment IDs: SSN 456-78-9012, PAN BXPTH1234K, driver's licence D400-9988-7766,\nGST 27AAPFU0939F1ZV.\nPayment: Mastercard 5500 0000 0000 0004, exp 06/29, CVV 737; bank account 40512345678901.\nMedical: insurance BCBS-77654321, MRN MRN-50291834.\nCredentials: API key sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r,\ntoken ghp_Abc123Def456Ghi789Jkl012Mno345PqRs.\nNetwork: source IP 203.0.113.42, device F1E2D3C4B5A6.\nBusiness: order ORD-2026-77421, invoice INV-2026-11593, case TCK-002847.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "",
+      "stderr": "",
+      "verdict": "pass",
+      "reasons": [
+        "All category toggle checks passed."
+      ],
+      "positiveRedactions": [],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 20,
+      "title": "CATEGORY TOGGLE TEST SNIPPET 20: ALL ON except networkDevice",
+      "metadata": {
+        "Disabled category": "networkDevice",
+        "Expected untouched": "IP_ADDRESS, DEVICE_ID",
+        "Expected redacted": "NAME, SSN, CREDIT_CARD, MRN, API_KEY, ORDER_ID"
+      },
+      "text": "Ops consultant James Hartley (james.hartley@consultant.com, +1-415-555-0173, born 14/03/1985)\nsigned into the portal as jhartley_ops from 47 Birch Street, Austin, TX 78701.\nGovernment IDs: SSN 456-78-9012, PAN BXPTH1234K, driver's licence D400-9988-7766,\nGST 27AAPFU0939F1ZV.\nPayment: Mastercard 5500 0000 0000 0004, exp 06/29, CVV 737; bank account 40512345678901.\nMedical: insurance BCBS-77654321, MRN MRN-50291834.\nCredentials: API key sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r,\ntoken ghp_Abc123Def456Ghi789Jkl012Mno345PqRs.\nNetwork: source IP 203.0.113.42, device F1E2D3C4B5A6.\nBusiness: order ORD-2026-77421, invoice INV-2026-11593, case TCK-002847.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "Payroll setup for Sam — SSN: 123-45-6789 (dummy).",
+      "stderr": "",
+      "verdict": "pass",
+      "reasons": [
+        "All category toggle checks passed."
+      ],
+      "positiveRedactions": [],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 21,
+      "title": "CATEGORY TOGGLE TEST SNIPPET 21: ALL ON except businessCase",
+      "metadata": {
+        "Disabled category": "businessCase",
+        "Expected untouched": "ORDER_ID, INVOICE_ID, CASE_ID",
+        "Expected redacted": "NAME, SSN, CREDIT_CARD, MRN, API_KEY, IP_ADDRESS"
+      },
+      "text": "Ops consultant James Hartley (james.hartley@consultant.com, +1-415-555-0173, born 14/03/1985)\nsigned into the portal as jhartley_ops from 47 Birch Street, Austin, TX 78701.\nGovernment IDs: SSN 456-78-9012, PAN BXPTH1234K, driver's licence D400-9988-7766,\nGST 27AAPFU0939F1ZV.\nPayment: Mastercard 5500 0000 0000 0004, exp 06/29, CVV 737; bank account 40512345678901.\nMedical: insurance BCBS-77654321, MRN MRN-50291834.\nCredentials: API key sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r,\ntoken ghp_Abc123Def456Ghi789Jkl012Mno345PqRs.\nNetwork: source IP 203.0.113.42, device F1E2D3C4B5A6.\nBusiness: order ORD-2026-77421, invoice INV-2026-11593, case TCK-002847.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "Payroll setup for Sam — SSN: [SSN 1] — SSN: [SSN 1] (dummy).",
+      "stderr": "",
+      "verdict": "pass",
+      "reasons": [
+        "All category toggle checks passed."
+      ],
+      "positiveRedactions": [],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": []
+    }
+  ]
+}

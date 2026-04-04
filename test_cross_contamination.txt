@@ -1,0 +1,142 @@
+==============================================================
+CROSS CONTAMINATION TEST SNIPPET 1: PAN and credit card, both categories ON
+Enabled categories: governmentLegal, financialPayment
+Expected labels: BXPTH1234K->PAN, 5500 0000 0000 0004->CREDIT_CARD
+==============================================================
+James Hartley is a tax consultant based in Manchester.
+His Indian PAN number is BXPTH1234K.
+He paid using his Mastercard: 5500 0000 0000 0004, expiry 06/29, CVV 737.
+
+==============================================================
+CROSS CONTAMINATION TEST SNIPPET 2: PAN and credit card, financialPayment only ON
+Enabled categories: financialPayment
+Expected labels: BXPTH1234K->none, 5500 0000 0000 0004->CREDIT_CARD
+==============================================================
+James Hartley is a tax consultant based in Manchester.
+His Indian PAN number is BXPTH1234K.
+He paid using his Mastercard: 5500 0000 0000 0004, expiry 06/29, CVV 737.
+
+==============================================================
+CROSS CONTAMINATION TEST SNIPPET 3: PAN and credit card, governmentLegal only ON
+Enabled categories: governmentLegal
+Expected labels: BXPTH1234K->PAN, 5500 0000 0000 0004->none
+==============================================================
+James Hartley is a tax consultant based in Manchester.
+His Indian PAN number is BXPTH1234K.
+He paid using his Mastercard: 5500 0000 0000 0004, expiry 06/29, CVV 737.
+
+==============================================================
+CROSS CONTAMINATION TEST SNIPPET 4: SSN and bank account, both categories ON
+Enabled categories: governmentLegal, financialPayment
+Expected labels: 456-78-9012->SSN, 40512345678901->BANK_ACCOUNT
+==============================================================
+Sarah Mitchell's Social Security Number is 456-78-9012.
+Her bank account number is 40512345678901 with routing number 021000021.
+
+==============================================================
+CROSS CONTAMINATION TEST SNIPPET 5: SSN and bank account, governmentLegal only ON
+Enabled categories: governmentLegal
+Expected labels: 456-78-9012->SSN, 40512345678901->none
+==============================================================
+Sarah Mitchell's Social Security Number is 456-78-9012.
+Her bank account number is 40512345678901 with routing number 021000021.
+
+==============================================================
+CROSS CONTAMINATION TEST SNIPPET 6: MRN and case ID, both categories ON
+Enabled categories: medical, businessCase
+Expected labels: MRN-50291834->MRN, TCK-002847->CASE_ID
+==============================================================
+Patient Robert Clarke was admitted under medical record MRN-50291834.
+His support ticket for the billing query is TCK-002847.
+
+==============================================================
+CROSS CONTAMINATION TEST SNIPPET 7: MRN and case ID, medical only ON
+Enabled categories: medical
+Expected labels: MRN-50291834->MRN, TCK-002847->none
+==============================================================
+Patient Robert Clarke was admitted under medical record MRN-50291834.
+His support ticket for the billing query is TCK-002847.
+
+==============================================================
+CROSS CONTAMINATION TEST SNIPPET 8: MRN and case ID, businessCase only ON
+Enabled categories: businessCase
+Expected labels: MRN-50291834->none, TCK-002847->CASE_ID
+==============================================================
+Patient Robert Clarke was admitted under medical record MRN-50291834.
+His support ticket for the billing query is TCK-002847.
+
+==============================================================
+CROSS CONTAMINATION TEST SNIPPET 9: Name and username within identityContact
+Enabled categories: identityContact
+Expected labels: Emily Watson->NAME, e.watson_92->USERNAME
+==============================================================
+Emily Watson created an account on the patient portal.
+Her username is e.watson_92 and she registered under her full legal name Emily Watson.
+
+==============================================================
+CROSS CONTAMINATION TEST SNIPPET 10: API key and access token within credentialsSecrets
+Enabled categories: credentialsSecrets
+Expected labels: sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r->API_KEY, ghp_Abc123Def456Ghi789Jkl012Mno345PqRs->ACCESS_TOKEN
+==============================================================
+Developer credentials exposed in a recent audit.
+API key: sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r
+GitHub access token: ghp_Abc123Def456Ghi789Jkl012Mno345PqRs
+
+==============================================================
+CROSS CONTAMINATION TEST SNIPPET 11: IP address and email, networkDevice and identityContact ON
+Enabled categories: networkDevice, identityContact
+Expected labels: 203.0.113.42->IP_ADDRESS, admin.noc@company.co.uk->EMAIL
+==============================================================
+A security alert was triggered from source IP 203.0.113.42.
+The NOC administrator at admin.noc@company.co.uk has been notified.
+
+==============================================================
+CROSS CONTAMINATION TEST SNIPPET 12: All seven categories enabled
+Enabled categories: identityContact, governmentLegal, financialPayment, medical, credentialsSecrets, networkDevice, businessCase
+Expected labels: james.hartley@consultant.com->EMAIL, 456-78-9012->SSN, BXPTH1234K->PAN, 5500 0000 0000 0004->CREDIT_CARD, MRN-50291834->MRN, sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r->API_KEY, 203.0.113.42->IP_ADDRESS, ORD-2026-77421->ORDER_ID
+==============================================================
+Ops consultant James Hartley (james.hartley@consultant.com, +1-415-555-0173)
+submitted combined records on behalf of patient MRN-50291834.
+Government IDs: SSN 456-78-9012, PAN BXPTH1234K.
+Payment: Mastercard 5500 0000 0000 0004, expiry 06/29; bank account 40512345678901.
+Credentials: API key sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r.
+Network: source IP 203.0.113.42, device F1E2D3C4B5A6.
+Business refs: order ORD-2026-77421, invoice INV-2026-11593, case TCK-002847.
+
+==============================================================
+CROSS CONTAMINATION TEST SNIPPET 13: All categories present, identityContact only ON
+Enabled categories: identityContact
+Expected labels: james.hartley@consultant.com->EMAIL, 456-78-9012->none, BXPTH1234K->none, 5500 0000 0000 0004->none, MRN-50291834->none, sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r->none, 203.0.113.42->none, ORD-2026-77421->none
+==============================================================
+Ops consultant James Hartley (james.hartley@consultant.com, +1-415-555-0173)
+submitted combined records on behalf of patient MRN-50291834.
+Government IDs: SSN 456-78-9012, PAN BXPTH1234K.
+Payment: Mastercard 5500 0000 0000 0004, expiry 06/29; bank account 40512345678901.
+Credentials: API key sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r.
+Network: source IP 203.0.113.42, device F1E2D3C4B5A6.
+Business refs: order ORD-2026-77421, invoice INV-2026-11593, case TCK-002847.
+
+==============================================================
+CROSS CONTAMINATION TEST SNIPPET 14: PAN, credit card and SSN three-way disambiguation
+Enabled categories: governmentLegal, financialPayment
+Expected labels: CXRTH5678M->PAN, 789-01-2345->SSN, 4111 1111 1111 1111->CREDIT_CARD
+==============================================================
+Tax and payment records for Peter Thompson based in Edinburgh.
+PAN: CXRTH5678M. SSN: 789-01-2345.
+Visa card: 4111 1111 1111 1111, expiry 12/28, CVV 424.
+
+==============================================================
+CROSS CONTAMINATION TEST SNIPPET 15: GST and invoice ID, alphanumeric disambiguation
+Enabled categories: governmentLegal, businessCase
+Expected labels: 27AAPFU0939F1ZV->GST, INV-2026-04455->INVOICE_ID
+==============================================================
+Meridian Trade Ltd GST registration number: 27AAPFU0939F1ZV.
+The associated invoice reference is INV-2026-04455 for Q1 2026 services.
+
+==============================================================
+CROSS CONTAMINATION TEST SNIPPET 16: Device ID and PAN, hex vs alphanumeric
+Enabled categories: networkDevice, governmentLegal
+Expected labels: FFAA1122BBCC->DEVICE_ID, DXHKN7890Z->PAN
+==============================================================
+Device FFAA1122BBCC was flagged during a network security audit.
+The registered owner's Indian PAN is DXHKN7890Z.

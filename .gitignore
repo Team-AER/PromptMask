@@ -30,3 +30,6 @@ docs/
 
 # Claude Code
 .claude/
+
+#Runtime artifacts
+extension.zip

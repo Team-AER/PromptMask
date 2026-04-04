@@ -175,3 +175,122 @@ Ticket: TCK-990122
 Case: CASE-OPS-2026-5501
 Legal hold: HOLD-2026-HR-18
 Her direct line is +1 (646) 555-0933 and her bank account is 11223344556677.
+
+==============================================================
+CATEGORY TOGGLE TEST SNIPPET 15: ALL ON except identityContact
+Disabled category: identityContact
+Expected untouched: NAME, PHONE, EMAIL, USERNAME, ADDRESS, DATE_OF_BIRTH
+Expected redacted: SSN, PAN, DRIVER_LICENSE, CREDIT_CARD, BANK_ACCOUNT, INSURANCE_ID, MRN, API_KEY, ACCESS_TOKEN, IP_ADDRESS, DEVICE_ID, ORDER_ID, INVOICE_ID, CASE_ID
+==============================================================
+Ops consultant James Hartley (james.hartley@consultant.com, +1-415-555-0173, born 14/03/1985)
+signed into the portal as jhartley_ops from 47 Birch Street, Austin, TX 78701.
+Government IDs: SSN 456-78-9012, PAN BXPTH1234K, driver's licence D400-9988-7766,
+GST 27AAPFU0939F1ZV.
+Payment: Mastercard 5500 0000 0000 0004, exp 06/29, CVV 737; bank account 40512345678901.
+Medical: insurance BCBS-77654321, MRN MRN-50291834.
+Credentials: API key sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r,
+token ghp_Abc123Def456Ghi789Jkl012Mno345PqRs.
+Network: source IP 203.0.113.42, device F1E2D3C4B5A6.
+Business: order ORD-2026-77421, invoice INV-2026-11593, case TCK-002847.
+
+==============================================================
+CATEGORY TOGGLE TEST SNIPPET 16: ALL ON except governmentLegal
+Disabled category: governmentLegal
+Expected untouched: SSN, PAN, GST, DRIVER_LICENSE
+Expected redacted: NAME, EMAIL, PHONE, CREDIT_CARD, BANK_ACCOUNT, MRN, API_KEY, IP_ADDRESS, ORDER_ID
+==============================================================
+Ops consultant James Hartley (james.hartley@consultant.com, +1-415-555-0173, born 14/03/1985)
+signed into the portal as jhartley_ops from 47 Birch Street, Austin, TX 78701.
+Government IDs: SSN 456-78-9012, PAN BXPTH1234K, driver's licence D400-9988-7766,
+GST 27AAPFU0939F1ZV.
+Payment: Mastercard 5500 0000 0000 0004, exp 06/29, CVV 737; bank account 40512345678901.
+Medical: insurance BCBS-77654321, MRN MRN-50291834.
+Credentials: API key sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r,
+token ghp_Abc123Def456Ghi789Jkl012Mno345PqRs.
+Network: source IP 203.0.113.42, device F1E2D3C4B5A6.
+Business: order ORD-2026-77421, invoice INV-2026-11593, case TCK-002847.
+
+==============================================================
+CATEGORY TOGGLE TEST SNIPPET 17: ALL ON except financialPayment
+Disabled category: financialPayment
+Expected untouched: BANK_ACCOUNT, CREDIT_CARD, CARD_EXPIRY, CARD_CVV, PAYPAL
+Expected redacted: NAME, SSN, PAN, MRN, API_KEY, IP_ADDRESS, ORDER_ID
+==============================================================
+Ops consultant James Hartley (james.hartley@consultant.com, +1-415-555-0173, born 14/03/1985)
+signed into the portal as jhartley_ops from 47 Birch Street, Austin, TX 78701.
+Government IDs: SSN 456-78-9012, PAN BXPTH1234K, driver's licence D400-9988-7766,
+GST 27AAPFU0939F1ZV.
+Payment: Mastercard 5500 0000 0000 0004, exp 06/29, CVV 737; bank account 40512345678901.
+Medical: insurance BCBS-77654321, MRN MRN-50291834.
+Credentials: API key sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r,
+token ghp_Abc123Def456Ghi789Jkl012Mno345PqRs.
+Network: source IP 203.0.113.42, device F1E2D3C4B5A6.
+Business: order ORD-2026-77421, invoice INV-2026-11593, case TCK-002847.
+
+==============================================================
+CATEGORY TOGGLE TEST SNIPPET 18: ALL ON except medical
+Disabled category: medical
+Expected untouched: INSURANCE_ID, MRN
+Expected redacted: NAME, SSN, CREDIT_CARD, API_KEY, IP_ADDRESS, ORDER_ID
+==============================================================
+Ops consultant James Hartley (james.hartley@consultant.com, +1-415-555-0173, born 14/03/1985)
+signed into the portal as jhartley_ops from 47 Birch Street, Austin, TX 78701.
+Government IDs: SSN 456-78-9012, PAN BXPTH1234K, driver's licence D400-9988-7766,
+GST 27AAPFU0939F1ZV.
+Payment: Mastercard 5500 0000 0000 0004, exp 06/29, CVV 737; bank account 40512345678901.
+Medical: insurance BCBS-77654321, MRN MRN-50291834.
+Credentials: API key sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r,
+token ghp_Abc123Def456Ghi789Jkl012Mno345PqRs.
+Network: source IP 203.0.113.42, device F1E2D3C4B5A6.
+Business: order ORD-2026-77421, invoice INV-2026-11593, case TCK-002847.
+
+==============================================================
+CATEGORY TOGGLE TEST SNIPPET 19: ALL ON except credentialsSecrets
+Disabled category: credentialsSecrets
+Expected untouched: API_KEY, ACCESS_TOKEN
+Expected redacted: NAME, SSN, CREDIT_CARD, MRN, IP_ADDRESS, ORDER_ID
+==============================================================
+Ops consultant James Hartley (james.hartley@consultant.com, +1-415-555-0173, born 14/03/1985)
+signed into the portal as jhartley_ops from 47 Birch Street, Austin, TX 78701.
+Government IDs: SSN 456-78-9012, PAN BXPTH1234K, driver's licence D400-9988-7766,
+GST 27AAPFU0939F1ZV.
+Payment: Mastercard 5500 0000 0000 0004, exp 06/29, CVV 737; bank account 40512345678901.
+Medical: insurance BCBS-77654321, MRN MRN-50291834.
+Credentials: API key sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r,
+token ghp_Abc123Def456Ghi789Jkl012Mno345PqRs.
+Network: source IP 203.0.113.42, device F1E2D3C4B5A6.
+Business: order ORD-2026-77421, invoice INV-2026-11593, case TCK-002847.
+
+==============================================================
+CATEGORY TOGGLE TEST SNIPPET 20: ALL ON except networkDevice
+Disabled category: networkDevice
+Expected untouched: IP_ADDRESS, DEVICE_ID
+Expected redacted: NAME, SSN, CREDIT_CARD, MRN, API_KEY, ORDER_ID
+==============================================================
+Ops consultant James Hartley (james.hartley@consultant.com, +1-415-555-0173, born 14/03/1985)
+signed into the portal as jhartley_ops from 47 Birch Street, Austin, TX 78701.
+Government IDs: SSN 456-78-9012, PAN BXPTH1234K, driver's licence D400-9988-7766,
+GST 27AAPFU0939F1ZV.
+Payment: Mastercard 5500 0000 0000 0004, exp 06/29, CVV 737; bank account 40512345678901.
+Medical: insurance BCBS-77654321, MRN MRN-50291834.
+Credentials: API key sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r,
+token ghp_Abc123Def456Ghi789Jkl012Mno345PqRs.
+Network: source IP 203.0.113.42, device F1E2D3C4B5A6.
+Business: order ORD-2026-77421, invoice INV-2026-11593, case TCK-002847.
+
+==============================================================
+CATEGORY TOGGLE TEST SNIPPET 21: ALL ON except businessCase
+Disabled category: businessCase
+Expected untouched: ORDER_ID, INVOICE_ID, CASE_ID
+Expected redacted: NAME, SSN, CREDIT_CARD, MRN, API_KEY, IP_ADDRESS
+==============================================================
+Ops consultant James Hartley (james.hartley@consultant.com, +1-415-555-0173, born 14/03/1985)
+signed into the portal as jhartley_ops from 47 Birch Street, Austin, TX 78701.
+Government IDs: SSN 456-78-9012, PAN BXPTH1234K, driver's licence D400-9988-7766,
+GST 27AAPFU0939F1ZV.
+Payment: Mastercard 5500 0000 0000 0004, exp 06/29, CVV 737; bank account 40512345678901.
+Medical: insurance BCBS-77654321, MRN MRN-50291834.
+Credentials: API key sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r,
+token ghp_Abc123Def456Ghi789Jkl012Mno345PqRs.
+Network: source IP 203.0.113.42, device F1E2D3C4B5A6.
+Business: order ORD-2026-77421, invoice INV-2026-11593, case TCK-002847.

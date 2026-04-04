@@ -1,0 +1,657 @@
+{
+  "model": "gemma3-1b",
+  "backend": "cpu",
+  "snippetsPath": "/Users/nidhibharani/Developer/PromptMask/test_cross_contamination.txt",
+  "total": 16,
+  "pass": 0,
+  "warn": 11,
+  "fail": 5,
+  "error": 0,
+  "results": [
+    {
+      "id": 1,
+      "title": "CROSS CONTAMINATION TEST SNIPPET 1: PAN and credit card, both categories ON",
+      "metadata": {
+        "Enabled categories": "governmentLegal, financialPayment",
+        "Expected labels": "BXPTH1234K->PAN, 5500 0000 0000 0004->CREDIT_CARD"
+      },
+      "text": "James Hartley is a tax consultant based in Manchester.\nHis Indian PAN number is BXPTH1234K.\nHe paid using his Mastercard: 5500 0000 0000 0004, expiry 06/29, CVV 737.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "Tax ID [GST N].",
+      "stderr": "",
+      "verdict": "warn",
+      "reasons": [
+        "Wrong or missing placeholder labels: BXPTH1234K->PAN, 5500 0000 0000 0004->CREDIT_CARD"
+      ],
+      "positiveRedactions": [
+        {
+          "value": "BXPTH1234K",
+          "status": "redacted"
+        },
+        {
+          "value": "5500 0000 0000 0004",
+          "status": "redacted"
+        }
+      ],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": [
+        {
+          "value": "BXPTH1234K",
+          "expectedKey": "PAN",
+          "status": "key-missing"
+        },
+        {
+          "value": "5500 0000 0000 0004",
+          "expectedKey": "CREDIT_CARD",
+          "status": "key-missing"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "CROSS CONTAMINATION TEST SNIPPET 2: PAN and credit card, financialPayment only ON",
+      "metadata": {
+        "Enabled categories": "financialPayment",
+        "Expected labels": "BXPTH1234K->none, 5500 0000 0000 0004->CREDIT_CARD"
+      },
+      "text": "James Hartley is a tax consultant based in Manchester.\nHis Indian PAN number is BXPTH1234K.\nHe paid using his Mastercard: 5500 0000 0000 0004, expiry 06/29, CVV 737.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "James Hartley was an tax consultant based in Manchester. His Indian PAN number was BXPTH1234K. He paid using his Mastercard: 5500 0000 0004, expiry 06/29, CVV 737.",
+      "stderr": "",
+      "verdict": "warn",
+      "reasons": [
+        "Wrong or missing placeholder labels: 5500 0000 0000 0004->CREDIT_CARD"
+      ],
+      "positiveRedactions": [
+        {
+          "value": "5500 0000 0000 0004",
+          "status": "redacted"
+        }
+      ],
+      "negativePreservations": [
+        {
+          "value": "BXPTH1234K",
+          "status": "preserved"
+        }
+      ],
+      "crossContaminations": [],
+      "wrongLabels": [
+        {
+          "value": "5500 0000 0000 0004",
+          "expectedKey": "CREDIT_CARD",
+          "status": "key-missing"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "CROSS CONTAMINATION TEST SNIPPET 3: PAN and credit card, governmentLegal only ON",
+      "metadata": {
+        "Enabled categories": "governmentLegal",
+        "Expected labels": "BXPTH1234K->PAN, 5500 0000 0000 0004->none"
+      },
+      "text": "James Hartley is a tax consultant based in Manchester.\nHis Indian PAN number is BXPTH1234K.\nHe paid using his Mastercard: 5500 0000 0000 0004, expiry 06/29, CVV 737.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "Tax ID [GST N].",
+      "stderr": "",
+      "verdict": "warn",
+      "reasons": [
+        "Disabled-category PII missing from output (should be untouched): 5500 0000 0000 0004",
+        "Wrong or missing placeholder labels: BXPTH1234K->PAN"
+      ],
+      "positiveRedactions": [
+        {
+          "value": "BXPTH1234K",
+          "status": "redacted"
+        }
+      ],
+      "negativePreservations": [
+        {
+          "value": "5500 0000 0000 0004",
+          "status": "missing"
+        }
+      ],
+      "crossContaminations": [],
+      "wrongLabels": [
+        {
+          "value": "BXPTH1234K",
+          "expectedKey": "PAN",
+          "status": "key-missing"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "CROSS CONTAMINATION TEST SNIPPET 4: SSN and bank account, both categories ON",
+      "metadata": {
+        "Enabled categories": "governmentLegal, financialPayment",
+        "Expected labels": "456-78-9012->SSN, 40512345678901->BANK_ACCOUNT"
+      },
+      "text": "Sarah Mitchell's Social Security Number is 456-78-9012.\nHer bank account number is 40512345678901 with routing number 021000021.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "[SSN 1], [GST N]",
+      "stderr": "",
+      "verdict": "warn",
+      "reasons": [
+        "Wrong or missing placeholder labels: 40512345678901->BANK_ACCOUNT"
+      ],
+      "positiveRedactions": [
+        {
+          "value": "456-78-9012",
+          "status": "redacted"
+        },
+        {
+          "value": "40512345678901",
+          "status": "redacted"
+        }
+      ],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": [
+        {
+          "value": "40512345678901",
+          "expectedKey": "BANK_ACCOUNT",
+          "status": "key-missing"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "CROSS CONTAMINATION TEST SNIPPET 5: SSN and bank account, governmentLegal only ON",
+      "metadata": {
+        "Enabled categories": "governmentLegal",
+        "Expected labels": "456-78-9012->SSN, 40512345678901->none"
+      },
+      "text": "Sarah Mitchell's Social Security Number is 456-78-9012.\nHer bank account number is 40512345678901 with routing number 021000021.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "[SSN 1], [GST N]",
+      "stderr": "",
+      "verdict": "warn",
+      "reasons": [
+        "Disabled-category PII missing from output (should be untouched): 40512345678901"
+      ],
+      "positiveRedactions": [
+        {
+          "value": "456-78-9012",
+          "status": "redacted"
+        }
+      ],
+      "negativePreservations": [
+        {
+          "value": "40512345678901",
+          "status": "missing"
+        }
+      ],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 6,
+      "title": "CROSS CONTAMINATION TEST SNIPPET 6: MRN and case ID, both categories ON",
+      "metadata": {
+        "Enabled categories": "medical, businessCase",
+        "Expected labels": "MRN-50291834->MRN, TCK-002847->CASE_ID"
+      },
+      "text": "Patient Robert Clarke was admitted under medical record MRN-50291834.\nHis support ticket for the billing query is TCK-002847.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "[MRN 1], [ORDER_ID 1], [INVOICE_ID 1]",
+      "stderr": "",
+      "verdict": "warn",
+      "reasons": [
+        "Wrong or missing placeholder labels: TCK-002847->CASE_ID"
+      ],
+      "positiveRedactions": [
+        {
+          "value": "MRN-50291834",
+          "status": "redacted"
+        },
+        {
+          "value": "TCK-002847",
+          "status": "redacted"
+        }
+      ],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": [
+        {
+          "value": "TCK-002847",
+          "expectedKey": "CASE_ID",
+          "status": "key-missing"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "CROSS CONTAMINATION TEST SNIPPET 7: MRN and case ID, medical only ON",
+      "metadata": {
+        "Enabled categories": "medical",
+        "Expected labels": "MRN-50291834->MRN, TCK-002847->none"
+      },
+      "text": "Patient Robert Clarke was admitted under medical record MRN-50291834.\nHis support ticket for the billing query is TCK-002847.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "[INSURANCE_ID 1], [MRN 1]",
+      "stderr": "",
+      "verdict": "warn",
+      "reasons": [
+        "Disabled-category PII missing from output (should be untouched): TCK-002847"
+      ],
+      "positiveRedactions": [
+        {
+          "value": "MRN-50291834",
+          "status": "redacted"
+        }
+      ],
+      "negativePreservations": [
+        {
+          "value": "TCK-002847",
+          "status": "missing"
+        }
+      ],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 8,
+      "title": "CROSS CONTAMINATION TEST SNIPPET 8: MRN and case ID, businessCase only ON",
+      "metadata": {
+        "Enabled categories": "businessCase",
+        "Expected labels": "MRN-50291834->none, TCK-002847->CASE_ID"
+      },
+      "text": "Patient Robert Clarke was admitted under medical record MRN-50291834.\nHis support ticket for the billing query is TCK-002847.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "[ORDER_ID 1], [INVOICE_ID 1], [CASE_ID 1]",
+      "stderr": "",
+      "verdict": "warn",
+      "reasons": [
+        "Disabled-category PII missing from output (should be untouched): MRN-50291834"
+      ],
+      "positiveRedactions": [
+        {
+          "value": "TCK-002847",
+          "status": "redacted"
+        }
+      ],
+      "negativePreservations": [
+        {
+          "value": "MRN-50291834",
+          "status": "missing"
+        }
+      ],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 9,
+      "title": "CROSS CONTAMINATION TEST SNIPPET 9: Name and username within identityContact",
+      "metadata": {
+        "Enabled categories": "identityContact",
+        "Expected labels": "Emily Watson->NAME, e.watson_92->USERNAME"
+      },
+      "text": "Emily Watson created an account on the patient portal.\nHer username is e.watson_92 and she registered under her full legal name Emily Watson.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "Emily Watson created an account on the patient portal.",
+      "stderr": "",
+      "verdict": "fail",
+      "reasons": [
+        "Leaked PII values: Emily Watson",
+        "Wrong or missing placeholder labels: e.watson_92->USERNAME"
+      ],
+      "positiveRedactions": [
+        {
+          "value": "Emily Watson",
+          "status": "leaked"
+        },
+        {
+          "value": "e.watson_92",
+          "status": "redacted"
+        }
+      ],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": [
+        {
+          "value": "e.watson_92",
+          "expectedKey": "USERNAME",
+          "status": "key-missing"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "CROSS CONTAMINATION TEST SNIPPET 10: API key and access token within credentialsSecrets",
+      "metadata": {
+        "Enabled categories": "credentialsSecrets",
+        "Expected labels": "sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r->API_KEY, ghp_Abc123Def456Ghi789Jkl012Mno345PqRs->ACCESS_TOKEN"
+      },
+      "text": "Developer credentials exposed in a recent audit.\nAPI key: sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r\nGitHub access token: ghp_Abc123Def456Ghi789Jkl012Mno345PqRs",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "Developer credentials exposed\nAPI key: sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r\nGitHub access token: ghp_Abc123Def456Ghi789Jkl012Mno345PqRs",
+      "stderr": "",
+      "verdict": "fail",
+      "reasons": [
+        "Leaked PII values: sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r, ghp_Abc123Def456Ghi789Jkl012Mno345PqRs"
+      ],
+      "positiveRedactions": [
+        {
+          "value": "sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r",
+          "status": "leaked"
+        },
+        {
+          "value": "ghp_Abc123Def456Ghi789Jkl012Mno345PqRs",
+          "status": "leaked"
+        }
+      ],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 11,
+      "title": "CROSS CONTAMINATION TEST SNIPPET 11: IP address and email, networkDevice and identityContact ON",
+      "metadata": {
+        "Enabled categories": "networkDevice, identityContact",
+        "Expected labels": "203.0.113.42->IP_ADDRESS, admin.noc@company.co.uk->EMAIL"
+      },
+      "text": "A security alert was triggered from source IP 203.0.113.42.\nThe NOC administrator at admin.noc@company.co.uk has been notified.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "A security alert was triggered from source IP 203.0.113.42.\nThe NOC administrator at admin.noc@company.co.uk has been notified.",
+      "stderr": "",
+      "verdict": "fail",
+      "reasons": [
+        "Leaked PII values: 203.0.113.42, admin.noc@company.co.uk"
+      ],
+      "positiveRedactions": [
+        {
+          "value": "203.0.113.42",
+          "status": "leaked"
+        },
+        {
+          "value": "admin.noc@company.co.uk",
+          "status": "leaked"
+        }
+      ],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 12,
+      "title": "CROSS CONTAMINATION TEST SNIPPET 12: All seven categories enabled",
+      "metadata": {
+        "Enabled categories": "identityContact, governmentLegal, financialPayment, medical, credentialsSecrets, networkDevice, businessCase",
+        "Expected labels": "james.hartley@consultant.com->EMAIL, 456-78-9012->SSN, BXPTH1234K->PAN, 5500 0000 0000 0004->CREDIT_CARD, MRN-50291834->MRN, sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r->API_KEY, 203.0.113.42->IP_ADDRESS, ORD-2026-77421->ORDER_ID"
+      },
+      "text": "Ops consultant James Hartley (james.hartley@consultant.com, +1-415-555-0173)\nsubmitted combined records on behalf of patient MRN-50291834.\nGovernment IDs: SSN 456-78-9012, PAN BXPTH1234K.\nPayment: Mastercard 5500 0000 0000 0004, expiry 06/29; bank account 40512345678901.\nCredentials: API key sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r.\nNetwork: source IP 203.0.113.42, device F1E2D3C4B5A6.\nBusiness refs: order ORD-2026-77421, invoice INV-2026-11593, case TCK-002847.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "Payroll setup for Sam — SSN: 123-45-6789 (dummy).",
+      "stderr": "",
+      "verdict": "warn",
+      "reasons": [
+        "Wrong or missing placeholder labels: james.hartley@consultant.com->EMAIL, 456-78-9012->SSN, BXPTH1234K->PAN, 5500 0000 0000 0004->CREDIT_CARD, MRN-50291834->MRN, sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r->API_KEY, 203.0.113.42->IP_ADDRESS, ORD-2026-77421->ORDER_ID"
+      ],
+      "positiveRedactions": [
+        {
+          "value": "james.hartley@consultant.com",
+          "status": "redacted"
+        },
+        {
+          "value": "456-78-9012",
+          "status": "redacted"
+        },
+        {
+          "value": "BXPTH1234K",
+          "status": "redacted"
+        },
+        {
+          "value": "5500 0000 0000 0004",
+          "status": "redacted"
+        },
+        {
+          "value": "MRN-50291834",
+          "status": "redacted"
+        },
+        {
+          "value": "sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r",
+          "status": "redacted"
+        },
+        {
+          "value": "203.0.113.42",
+          "status": "redacted"
+        },
+        {
+          "value": "ORD-2026-77421",
+          "status": "redacted"
+        }
+      ],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": [
+        {
+          "value": "james.hartley@consultant.com",
+          "expectedKey": "EMAIL",
+          "status": "key-missing"
+        },
+        {
+          "value": "456-78-9012",
+          "expectedKey": "SSN",
+          "status": "key-missing"
+        },
+        {
+          "value": "BXPTH1234K",
+          "expectedKey": "PAN",
+          "status": "key-missing"
+        },
+        {
+          "value": "5500 0000 0000 0004",
+          "expectedKey": "CREDIT_CARD",
+          "status": "key-missing"
+        },
+        {
+          "value": "MRN-50291834",
+          "expectedKey": "MRN",
+          "status": "key-missing"
+        },
+        {
+          "value": "sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r",
+          "expectedKey": "API_KEY",
+          "status": "key-missing"
+        },
+        {
+          "value": "203.0.113.42",
+          "expectedKey": "IP_ADDRESS",
+          "status": "key-missing"
+        },
+        {
+          "value": "ORD-2026-77421",
+          "expectedKey": "ORDER_ID",
+          "status": "key-missing"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "title": "CROSS CONTAMINATION TEST SNIPPET 13: All categories present, identityContact only ON",
+      "metadata": {
+        "Enabled categories": "identityContact",
+        "Expected labels": "james.hartley@consultant.com->EMAIL, 456-78-9012->none, BXPTH1234K->none, 5500 0000 0000 0004->none, MRN-50291834->none, sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r->none, 203.0.113.42->none, ORD-2026-77421->none"
+      },
+      "text": "Ops consultant James Hartley (james.hartley@consultant.com, +1-415-555-0173)\nsubmitted combined records on behalf of patient MRN-50291834.\nGovernment IDs: SSN 456-78-9012, PAN BXPTH1234K.\nPayment: Mastercard 5500 0000 0000 0004, expiry 06/29; bank account 40512345678901.\nCredentials: API key sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r.\nNetwork: source IP 203.0.113.42, device F1E2D3C4B5A6.\nBusiness refs: order ORD-2026-77421, invoice INV-2026-11593, case TCK-002847.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "Ops consultant James Hartley (james.hartley@consultant.com, +1-415-555-0173)\nsubmitted combined records on behalf of patient MRN-50291834.\nGovernment IDs: SSN 456-78-9012, PAN BXPTH1234K.\nPayment: Mastercard 5500 0000 0004, expiry 06/29; bank account 40512345678901.\nCredentials: API key sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r.\nNetwork: source IP 203.0.113.42, device F1E2D3C4B5A6.\nBusiness refs: order ORD-2026-77421, invoice INV-2026-11593, case TCK-002847.",
+      "stderr": "",
+      "verdict": "fail",
+      "reasons": [
+        "Leaked PII values: james.hartley@consultant.com",
+        "Disabled-category PII missing from output (should be untouched): 5500 0000 0000 0004"
+      ],
+      "positiveRedactions": [
+        {
+          "value": "james.hartley@consultant.com",
+          "status": "leaked"
+        }
+      ],
+      "negativePreservations": [
+        {
+          "value": "456-78-9012",
+          "status": "preserved"
+        },
+        {
+          "value": "BXPTH1234K",
+          "status": "preserved"
+        },
+        {
+          "value": "5500 0000 0000 0004",
+          "status": "missing"
+        },
+        {
+          "value": "MRN-50291834",
+          "status": "preserved"
+        },
+        {
+          "value": "sk-prod7x8yZ9aB2cD3eF4gH5iJ6kL7mN8oP9r",
+          "status": "preserved"
+        },
+        {
+          "value": "203.0.113.42",
+          "status": "preserved"
+        },
+        {
+          "value": "ORD-2026-77421",
+          "status": "preserved"
+        }
+      ],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 14,
+      "title": "CROSS CONTAMINATION TEST SNIPPET 14: PAN, credit card and SSN three-way disambiguation",
+      "metadata": {
+        "Enabled categories": "governmentLegal, financialPayment",
+        "Expected labels": "CXRTH5678M->PAN, 789-01-2345->SSN, 4111 1111 1111 1111->CREDIT_CARD"
+      },
+      "text": "Tax and payment records for Peter Thompson based in Edinburgh.\nPAN: CXRTH5678M. SSN: 789-01-2345.\nVisa card: 4111 1111 1111 1111, expiry 12/28, CVV 424.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "Tax and payment records for Peter Thompson based in Edinburgh.\nPAN: CXRTH5678M. SSN: 789-01-2345.\nVisa card: 4111 1111 1111 1111, expiry 12/28, CVV 424.",
+      "stderr": "",
+      "verdict": "fail",
+      "reasons": [
+        "Leaked PII values: CXRTH5678M, 789-01-2345, 4111 1111 1111 1111"
+      ],
+      "positiveRedactions": [
+        {
+          "value": "CXRTH5678M",
+          "status": "leaked"
+        },
+        {
+          "value": "789-01-2345",
+          "status": "leaked"
+        },
+        {
+          "value": "4111 1111 1111 1111",
+          "status": "leaked"
+        }
+      ],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": []
+    },
+    {
+      "id": 15,
+      "title": "CROSS CONTAMINATION TEST SNIPPET 15: GST and invoice ID, alphanumeric disambiguation",
+      "metadata": {
+        "Enabled categories": "governmentLegal, businessCase",
+        "Expected labels": "27AAPFU0939F1ZV->GST, INV-2026-04455->INVOICE_ID"
+      },
+      "text": "Meridian Trade Ltd GST registration number: 27AAPFU0939F1ZV.\nThe associated invoice reference is INV-2026-04455 for Q1 2026 services.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "[GST N]",
+      "stderr": "",
+      "verdict": "warn",
+      "reasons": [
+        "Wrong or missing placeholder labels: 27AAPFU0939F1ZV->GST, INV-2026-04455->INVOICE_ID"
+      ],
+      "positiveRedactions": [
+        {
+          "value": "27AAPFU0939F1ZV",
+          "status": "redacted"
+        },
+        {
+          "value": "INV-2026-04455",
+          "status": "redacted"
+        }
+      ],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": [
+        {
+          "value": "27AAPFU0939F1ZV",
+          "expectedKey": "GST",
+          "status": "key-missing"
+        },
+        {
+          "value": "INV-2026-04455",
+          "expectedKey": "INVOICE_ID",
+          "status": "key-missing"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "title": "CROSS CONTAMINATION TEST SNIPPET 16: Device ID and PAN, hex vs alphanumeric",
+      "metadata": {
+        "Enabled categories": "networkDevice, governmentLegal",
+        "Expected labels": "FFAA1122BBCC->DEVICE_ID, DXHKN7890Z->PAN"
+      },
+      "text": "Device FFAA1122BBCC was flagged during a network security audit.\nThe registered owner's Indian PAN is DXHKN7890Z.",
+      "model": "gemma3-1b",
+      "backend": "cpu",
+      "output": "Tax ID [GST N] or PAN [PAN N].",
+      "stderr": "",
+      "verdict": "warn",
+      "reasons": [
+        "Wrong or missing placeholder labels: FFAA1122BBCC->DEVICE_ID, DXHKN7890Z->PAN"
+      ],
+      "positiveRedactions": [
+        {
+          "value": "FFAA1122BBCC",
+          "status": "redacted"
+        },
+        {
+          "value": "DXHKN7890Z",
+          "status": "redacted"
+        }
+      ],
+      "negativePreservations": [],
+      "crossContaminations": [],
+      "wrongLabels": [
+        {
+          "value": "FFAA1122BBCC",
+          "expectedKey": "DEVICE_ID",
+          "status": "key-missing"
+        },
+        {
+          "value": "DXHKN7890Z",
+          "expectedKey": "PAN",
+          "status": "key-missing"
+        }
+      ]
+    }
+  ]
+}
