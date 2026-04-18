@@ -18,6 +18,12 @@ MODELS = {
         "format": "litertlm",
         "description": "Gemma 3n E2B WebGPU - Optimized .litertlm model for the extension",
     },
+    "gemma4-e2b-web": {
+        "repo_id": "litert-community/gemma-4-E2B-it-litert-lm",
+        "filename": "gemma-4-E2B-it-web.task",
+        "format": "task",
+        "description": "Gemma 4 E2B WebGPU - .task model for web/Chrome extension",
+    },
 }
 
 
@@ -147,7 +153,7 @@ def main():
         return
     
     print("🚀 Downloading the extension's default model...")
-    download_model("gemma3n-e2b-web", args.output_dir)
+    download_model("gemma4-e2b-web", args.output_dir)
 
 
 if __name__ == "__main__":

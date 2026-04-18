@@ -1,11 +1,11 @@
 export const MODEL_SOURCE_PAGE_URL =
-  "https://huggingface.co/Team-AER/promptmask-local-pii-redaction/tree/main";
-export const MODEL_REVISION = "16e3f95d897225f6c1cb4ff15206ac6b324ea0b3";
-export const MODEL_FILE_NAME = "promptmask-gemma3n-redactor-v1.litertlm";
-export const MODEL_DOWNLOAD_URL = `https://huggingface.co/Team-AER/promptmask-local-pii-redaction/resolve/${MODEL_REVISION}/${MODEL_FILE_NAME}?download=true`;
+  "https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm/tree/main";
+export const MODEL_REVISION = "a872a24f796a9b2c6d6e5eba63a1b84a5c7e7b73";
+export const MODEL_FILE_NAME = "gemma-4-E2B-it-web.task";
+export const MODEL_DOWNLOAD_URL = `https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm/resolve/${MODEL_REVISION}/${MODEL_FILE_NAME}?download=true`;
 export const MODEL_CACHE_NAME = "promptmask-model-cache-v1";
 export const MODEL_STATE_KEY = "promptmask_model_state_v1";
-export const MODEL_EXPECTED_BYTES = 3040000000;
+export const MODEL_EXPECTED_BYTES = 2000000000;
 
 const DOWNLOAD_PROGRESS_INTERVAL_MS = 750;
 const DOWNLOAD_PROGRESS_INTERVAL_BYTES = 8 * 1024 * 1024;

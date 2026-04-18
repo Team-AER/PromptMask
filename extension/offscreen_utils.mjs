@@ -1,5 +1,7 @@
 const PROMPT_PREAMBLE = `You are a PII redaction system. Replace any PII in the input with consistently numbered placeholders and return ONLY the redacted text. Keep all non-PII text exactly as-is. Do not add or remove any other words. Do not add headings, labels, explanations, quotes, or tags.
 
+CRITICAL: Only process the exact text provided in Input. Do NOT invent, add, or assume any information that is not present in the input. If the input is short or contains little PII, return it with only the PII that actually appears replaced.
+
 Preserve the original formatting exactly: keep all line breaks, paragraph spacing, bullet points, indentation, list structure, and whitespace. Do not collapse the text into a single line or paragraph or normalize spacing.
 
 Use ONLY the placeholder categories listed below. Never invent new placeholder categories such as [CITY], [TIME], [ZIP], [SUB-CC], [ENDPOINT_SERIAL], [MON_NUMBER], or any other unlisted tag. If a value does not fit one of the listed categories, leave it unchanged.`;
@@ -266,12 +268,12 @@ export function buildPrompt(text, redactionConfig = null) {
     promptBody = REDACTION_PROMPT;
   }
 
-  return `<start_of_turn>user\n${promptBody}\n\nINPUT:\n${text}\n<end_of_turn>\n<start_of_turn>model\n`;
+  return `${promptBody}\n\nInput:\n${text}\n\nOutput:\n`;
 }
 
 export function buildCorrectionPrompt(text, redactionConfig = null, disallowedPlaceholderKeys = []) {
   const retryBody = buildPrompt(text, redactionConfig).replace(
-    "\n\nINPUT:\n",
+    "\n\nInput:\n",
     `\n\nCorrection for previous attempt:
 - Start over from the original input below.
 - The previous attempt incorrectly used disabled placeholder tags: ${disallowedPlaceholderKeys
@@ -279,7 +281,7 @@ export function buildCorrectionPrompt(text, redactionConfig = null, disallowedPl
       .join(", ")}.
 - Leave values from disabled categories unchanged.
 - Keep allowed-category redactions only.
-- Return ONLY the corrected redacted text.\n\nINPUT:\n`
+- Return ONLY the corrected redacted text.\n\nInput:\n`
   );
 
   return retryBody;
@@ -324,5 +326,13 @@ export function normalizeOutput(text) {
   if (endIndex !== -1) {
     output = output.slice(0, endIndex);
   }
+
+  // The model sometimes continues with another few-shot pair after finishing.
+  // Truncate at the first continuation marker that can't appear in real redacted text.
+  const continuationMatch = output.match(/\n+\s*(Output|Input)\s*:/);
+  if (continuationMatch) {
+    output = output.slice(0, continuationMatch.index);
+  }
+
   return output;
 }

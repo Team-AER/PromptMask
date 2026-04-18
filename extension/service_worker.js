@@ -51,6 +51,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
     if (message.error) {
       console.warn("[Gemma Redaction] Offscreen error:", message.error);
+    } else {
+      console.info("[Gemma Redaction] Result from model:", JSON.stringify(message.result));
     }
     return;
   }

@@ -88,12 +88,16 @@ chrome.runtime.onMessage.addListener((message) => {
     await enqueueInference(async () => {
       try {
         const inputText = message.prompt ?? "";
-        const firstResult = await runInference(buildPrompt(inputText, message.redactionConfig));
+        const prompt = buildPrompt(inputText, message.redactionConfig);
+        console.info("[Gemma Redaction] Prompt sent to model:\n", prompt);
+        const firstResult = await runInference(prompt);
+        console.info("[Gemma Redaction] Raw model output:", JSON.stringify(firstResult));
         console.info("[Gemma Redaction] Inference complete.");
         let normalized =
           typeof firstResult === "string"
             ? normalizeOutput(firstResult)
             : normalizeOutput(JSON.stringify(firstResult));
+        console.info("[Gemma Redaction] Normalized output:", JSON.stringify(normalized));
         let disallowedPlaceholderKeys = findDisallowedPlaceholderKeys(normalized, message.redactionConfig);
         if (disallowedPlaceholderKeys.length > 0) {
           console.warn(

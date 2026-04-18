@@ -310,6 +310,7 @@ function findComposerFromEventPath(event) {
 
 function normalizeComparableText(text) {
   return String(text ?? "")
+    .replace(/[\u2013\u2014\u2212]/g, "-")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -1214,7 +1215,7 @@ function looksLikeValidRedaction(originalText, redactedText) {
     return false;
   }
 
-  if (originalLength <= 20) {
+  if (originalLength <= 20 && !changed) {
     return true;
   }
 
