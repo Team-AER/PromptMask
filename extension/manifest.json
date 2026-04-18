@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "PromptMask",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Redact sensitive information from your AI prompts before you hit send. 100% private, on-device.",
   "permissions": ["offscreen", "storage", "unlimitedStorage"],
   "host_permissions": [
