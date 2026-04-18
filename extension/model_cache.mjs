@@ -6,6 +6,7 @@ export const MODEL_DOWNLOAD_URL = `https://huggingface.co/litert-community/gemma
 export const MODEL_CACHE_NAME = "promptmask-model-cache-v1";
 export const MODEL_STATE_KEY = "promptmask_model_state_v1";
 export const MODEL_EXPECTED_BYTES = 2000000000;
+export const MODEL_DISPLAY_SIZE = "2 GB";
 
 const DOWNLOAD_PROGRESS_INTERVAL_MS = 750;
 const DOWNLOAD_PROGRESS_INTERVAL_BYTES = 8 * 1024 * 1024;
@@ -76,15 +77,20 @@ export function formatByteCount(bytes) {
   return `${value.toFixed(digits)} ${units[unitIndex]}`;
 }
 
+function formatModelTotalForDisplay(bytes) {
+  return bytes === MODEL_EXPECTED_BYTES ? MODEL_DISPLAY_SIZE : formatByteCount(bytes);
+}
+
 export function describeModelState(raw) {
   const state = normalizeModelState(raw);
   const total = state.totalBytes || state.expectedBytes;
+  const displayTotal = formatModelTotalForDisplay(total);
 
   switch (state.status) {
     case "ready":
       return {
         summary: "Model ready for local redaction.",
-        detail: `Stored locally (${formatByteCount(total)}).`
+        detail: `Stored locally (${displayTotal}).`
       };
     case "downloading": {
       const percent =
@@ -94,7 +100,7 @@ export function describeModelState(raw) {
           percent === null
             ? "Downloading model for first use..."
             : `Downloading model for first use... ${percent}%`,
-        detail: `${formatByteCount(state.downloadedBytes)} of ${formatByteCount(total)} saved locally.`
+        detail: `${formatByteCount(state.downloadedBytes)} of ${displayTotal} saved locally.`
       };
     }
     case "error":
@@ -105,12 +111,12 @@ export function describeModelState(raw) {
     case "loading":
       return {
         summary: "Opening local model...",
-        detail: `Using ${formatByteCount(total)} model cache.`
+        detail: `Using ${displayTotal} model cache.`
       };
     case "not_downloaded":
     default:
       return {
-        summary: `First use downloads about ${formatByteCount(total)}.`,
+        summary: `First use downloads about ${displayTotal}.`,
         detail: "The model is saved locally after the initial download."
       };
   }

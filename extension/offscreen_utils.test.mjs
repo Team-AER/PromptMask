@@ -32,11 +32,10 @@ function testBuildPrompt() {
   const input = "Contact Jane Doe at jane.doe@example.com.";
   const prompt = buildPrompt(input);
 
-  assert.ok(prompt.includes("<start_of_turn>user"));
-  assert.ok(prompt.includes("<start_of_turn>model"));
-  assert.ok(prompt.includes("<end_of_turn>"));
   assert.ok(prompt.includes(REDACTION_PROMPT.trim()));
-  assert.ok(prompt.includes(`INPUT:\n${input}`));
+  assert.ok(prompt.includes(`Input:\n${input}`));
+  assert.ok(prompt.endsWith("\n\nOutput:\n"));
+  assert.ok(!prompt.includes("<start_of_turn>"));
 }
 
 function testBuildPromptWithScopedCategories() {
@@ -106,7 +105,7 @@ function testBuildCorrectionPromptMentionsDisabledPlaceholders() {
   assert.ok(prompt.includes("Correction for previous attempt:"));
   assert.ok(prompt.includes("The previous attempt incorrectly used disabled placeholder tags: [PAN N]."));
   assert.ok(prompt.includes("Leave values from disabled categories unchanged."));
-  assert.ok(prompt.includes("INPUT:\nMy name is Noor and PAN: ABCPK1234D."));
+  assert.ok(prompt.includes("Input:\nMy name is Noor and PAN: ABCPK1234D."));
 }
 
 function testPromptListsAllPlaceholders() {
@@ -251,6 +250,18 @@ function testNormalizeOutputPreservesNewlines() {
   assert.equal(normalized, "Line one.\n\nLine two.\n- bullet");
 }
 
+function testNormalizeOutputTruncatesAtOutputContinuation() {
+  const raw = "Contact [NAME 1].\n\nOutput:\nSome extra text";
+  const normalized = normalizeOutput(raw);
+  assert.equal(normalized, "Contact [NAME 1].");
+}
+
+function testNormalizeOutputTruncatesAtInputContinuation() {
+  const raw = "Contact [NAME 1].\n\nInput:\nNext prompt";
+  const normalized = normalizeOutput(raw);
+  assert.equal(normalized, "Contact [NAME 1].");
+}
+
 function run() {
   testBuildPrompt();
   testBuildPromptWithScopedCategories();
@@ -275,6 +286,8 @@ function run() {
   testNormalizeOutputTrimsWhitespace();
   testNormalizeOutputNoTags();
   testNormalizeOutputPreservesNewlines();
+  testNormalizeOutputTruncatesAtOutputContinuation();
+  testNormalizeOutputTruncatesAtInputContinuation();
   console.log("offscreen_utils tests: OK");
 }
 

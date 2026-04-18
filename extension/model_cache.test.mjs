@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import {
+  MODEL_DISPLAY_SIZE,
   MODEL_EXPECTED_BYTES,
   createDefaultModelState,
   describeModelState,
@@ -11,7 +12,7 @@ function testFormatByteCount() {
   assert.equal(formatByteCount(0), "0 B");
   assert.equal(formatByteCount(1024), "1 KB");
   assert.equal(formatByteCount(5 * 1024 * 1024), "5.0 MB");
-  assert.equal(formatByteCount(MODEL_EXPECTED_BYTES), "2.83 GB");
+  assert.equal(formatByteCount(3 * 1024 * 1024 * 1024), "3.00 GB");
 }
 
 function testNormalizeModelStateUsesDefaults() {
@@ -53,7 +54,7 @@ function testDescribeModelStateForReady() {
   });
 
   assert.equal(summary, "Model ready for local redaction.");
-  assert.ok(detail.includes("Stored locally"));
+  assert.equal(detail, `Stored locally (${MODEL_DISPLAY_SIZE}).`);
 }
 
 function testDescribeModelStateForLoading() {
@@ -63,7 +64,14 @@ function testDescribeModelStateForLoading() {
   });
 
   assert.equal(summary, "Opening local model...");
-  assert.ok(detail.includes("Using"));
+  assert.equal(detail, `Using ${MODEL_DISPLAY_SIZE} model cache.`);
+}
+
+function testDescribeModelStateForNotDownloaded() {
+  const { summary, detail } = describeModelState(createDefaultModelState());
+
+  assert.equal(summary, `First use downloads about ${MODEL_DISPLAY_SIZE}.`);
+  assert.equal(detail, "The model is saved locally after the initial download.");
 }
 
 function run() {
@@ -73,6 +81,7 @@ function run() {
   testDescribeModelStateForDownload();
   testDescribeModelStateForReady();
   testDescribeModelStateForLoading();
+  testDescribeModelStateForNotDownloaded();
   console.log("model_cache tests: OK");
 }
 

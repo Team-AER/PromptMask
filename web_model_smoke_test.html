@@ -12,10 +12,8 @@
       import { buildPrompt, normalizeOutput } from "./extension/offscreen_utils.mjs";
 
       const resultEl = document.getElementById("result");
-      const modelPath =
-        "file:///Users/nidhibharani/Documents/Projects/gemma_on_edge/models/promptmask-gemma3n-redactor-v1.litertlm";
-      const wasmPath =
-        "file:///Users/nidhibharani/Documents/Projects/gemma_on_edge/extension/lib/wasm";
+      const modelPath = "http://localhost:8000/models/gemma-4-E2B-it-web.task";
+      const wasmPath = "./extension/lib/wasm";
       const input =
         "Hi, my name is Priya Sharma and my email is priya.sharma92@gmail.com.";
 

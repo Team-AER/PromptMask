@@ -208,7 +208,7 @@ Input: Alice emailed Bob at bob@x.com. Alice's SSN is 111-22-3333 and Bob's is 4
 Output: [NAME 1] emailed [NAME 2] at [EMAIL 1]. [NAME 1]'s SSN is [SSN 1] and [NAME 2]'s is [SSN 2].`;
 
     function buildPrompt(text) {
-      return `<start_of_turn>user\n${REDACTION_PROMPT}\n\nINPUT:\n${text}\n<end_of_turn>\n<start_of_turn>model\n`;
+      return `${REDACTION_PROMPT}\n\nInput:\n${text}\n\nOutput:\n`;
     }
 
     function formatError(err) {

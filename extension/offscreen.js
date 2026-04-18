@@ -8,7 +8,7 @@ import {
 import { MODEL_DOWNLOAD_URL, getModelAssetReader, writeModelState } from "./model_cache.mjs";
 
 const WASM_URL = chrome.runtime.getURL("lib/wasm");
-const MAX_TOKENS = 4096;
+const MAX_TOKENS = 16384;
 
 let llmInferencePromise;
 let llmInferenceInstance;

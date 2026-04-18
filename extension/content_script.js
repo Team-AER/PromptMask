@@ -141,33 +141,6 @@ let settings = {
 };
 
 const busyState = new WeakMap();
-const PLACEHOLDER_PREFIXES = [
-  "[NAME ",
-  "[PHONE ",
-  "[EMAIL ",
-  "[USERNAME ",
-  "[ADDRESS ",
-  "[SSN ",
-  "[DATE_OF_BIRTH ",
-  "[INSURANCE_ID ",
-  "[MRN ",
-  "[IP_ADDRESS ",
-  "[ORDER_ID ",
-  "[INVOICE_ID ",
-  "[CASE_ID ",
-  "[PAN ",
-  "[GST ",
-  "[DEVICE_ID ",
-  "[PAYPAL ",
-  "[DRIVER_LICENSE ",
-  "[API_KEY ",
-  "[BANK_ACCOUNT ",
-  "[CREDIT_CARD ",
-  "[CARD_EXPIRY ",
-  "[CARD_CVV ",
-  "[ACCESS_TOKEN "
-];
-const PLACEHOLDER_TOKEN_PATTERN = /\[[A-Z_]+ \d+\]/g;
 
 const SPINNER_ID = "gemma-redaction-spinner";
 const SPINNER_STYLE_ID = "gemma-redaction-spinner-style";
@@ -1201,54 +1174,8 @@ function waitForUiUpdate() {
 }
 
 function looksLikeValidRedaction(originalText, redactedText) {
-  if (!redactedText) {
-    return false;
-  }
-  const originalLength = originalText.length;
-  const redactedLength = redactedText.length;
-  const normalizedOriginal = normalizeComparableText(originalText);
-  const normalizedRedacted = normalizeComparableText(redactedText);
-  const changed = normalizedOriginal !== normalizedRedacted;
-
-  const hasPlaceholder = PLACEHOLDER_PREFIXES.some((prefix) => redactedText.includes(prefix));
-  if (changed && !hasPlaceholder) {
-    return false;
-  }
-
-  if (originalLength <= 20 && !changed) {
-    return true;
-  }
-
-  if (redactedLength < 12) {
-    return false;
-  }
-
-  if (redactedLength < originalLength * 0.35 && !hasPlaceholder) {
-    return false;
-  }
-
-  if (hasPlaceholder && !literalSegmentsAppearInOrder(normalizedOriginal, redactedText)) {
-    return false;
-  }
-
-  return true;
-}
-
-function literalSegmentsAppearInOrder(normalizedOriginalText, redactedText) {
-  const literalSegments = String(redactedText)
-    .split(PLACEHOLDER_TOKEN_PATTERN)
-    .map((segment) => normalizeComparableText(segment))
-    .filter(Boolean);
-
-  let searchStart = 0;
-  for (const segment of literalSegments) {
-    const foundAt = normalizedOriginalText.indexOf(segment, searchStart);
-    if (foundAt === -1) {
-      return false;
-    }
-    searchStart = foundAt + segment.length;
-  }
-
+  if (!redactedText || !redactedText.trim()) return false;
+  if (originalText.length > 80 && redactedText.trim().length < 20) return false;
   return true;
 }
 
