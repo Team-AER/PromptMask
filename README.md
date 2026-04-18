@@ -1,6 +1,6 @@
-# Gemma on Edge with MediaPipe
+# PromptMask — On-Device AI Redaction
 
-Run Google's Gemma model locally on your device using MediaPipe's LLM Inference API. The Chrome extension uses a single WebGPU-optimized `.litertlm` model.
+Run Google's Gemma model locally on your device using MediaPipe's LLM Inference API. The Chrome extension uses a single WebGPU-optimized `.task` model.
 
 ## 🚀 Quick Start
 
@@ -22,7 +22,7 @@ Before downloading or using Gemma model files, review the Gemma Terms of Use and
 python download_models.py
 
 # Or download it explicitly
-python download_models.py --model gemma3n-e2b-web
+python download_models.py --model gemma4-e2b-web
 
 # List all available models
 python download_models.py --list
@@ -34,21 +34,23 @@ python download_models.py --list
 # Put a prompt in a file
 echo "What is machine learning?" > prompt.txt
 
-# Run the same local .litertlm model used by the extension
-lit run models/gemma-3n-E2B-it-int4-Web.litertlm -f prompt.txt --backend cpu
+# Run the local model used by the extension
+lit run models/gemma-4-E2B-it-web.task -f prompt.txt --backend cpu
 
 # Or pull a model from Hugging Face via the LiteRT-LM registry
 export HUGGING_FACE_HUB_TOKEN="your_huggingface_token"
 lit list --show_all
-lit run google/gemma-3n-E2B-it-litert-lm/gemma-3n-E2B-it-int4-Web.litertlm --backend cpu
+lit run litert-community/gemma-4-E2B-it-litert-lm/gemma-4-E2B-it-web.task --backend cpu
 ```
 
 ### 4. Install the LiteRT-LM CLI (fresh setup)
 
 ```bash
-# Option A: Use the bundled CLI binary from this repo
+# Option A: Download a prebuilt LiteRT-LM CLI (macOS ARM64, Linux x86_64/ARM64, Windows x86_64),
+# name it "lit", make it executable, and place it somewhere on PATH.
+# Note: the lit binary is NOT included in this repo (it is gitignored).
 mkdir -p ~/.local/bin
-cp ./lit ~/.local/bin/lit
+cp ./lit ~/.local/bin/lit   # replace ./lit with wherever you placed the downloaded binary
 chmod +x ~/.local/bin/lit
 
 # Option B: Download a prebuilt LiteRT-LM CLI (macOS ARM64, Linux x86_64/ARM64, Windows x86_64)
@@ -70,7 +72,7 @@ lit --help
 
 | Model | Format | Description |
 |-------|--------|-------------|
-| `gemma3n-e2b-web` | `.litertlm` | Gemma 3n E2B WebGPU model used by the extension and local demo |
+| `gemma4-e2b-web` | `.task` | Gemma 4 E2B WebGPU model used by the extension |
 
 ## 🔧 Configuration Options
 
@@ -108,12 +110,12 @@ python bundle_model.py \
 
 | Model | Format | Description |
 |-------|--------|-------------|
-| `gemma3n-e2b-web` | .litertlm | Gemma 3n E2B WebGPU model used by the extension |
+| `gemma4-e2b-web` | `.task` | Gemma 4 E2B WebGPU model used by the extension |
 
 ## 🔗 Resources
 
 - [MediaPipe LLM Inference Guide](https://ai.google.dev/edge/mediapipe/solutions/genai/llm_inference)
-- [Gemma 3n E2B LiteRT-LM Model](https://huggingface.co/google/gemma-3n-E2B-it-litert-lm)
+- [Gemma 4 E2B LiteRT-LM Model](https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm)
 - [MediaPipe Studio Demo](https://mediapipe-studio.webapps.google.com/demo/llm_inference)
 
 ## ⚠️ Requirements
