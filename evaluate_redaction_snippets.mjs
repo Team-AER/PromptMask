@@ -13,6 +13,8 @@ const DEFAULT_LIT_PATH = "./lit";
 const DEFAULT_BACKEND = "cpu";
 const DEFAULT_OUTPUT_PATH = "redaction_eval_results.json";
 const DEFAULT_MODEL_CANDIDATES = [
+  "models/gemma-4-E2B-it.litertlm",
+  "models/gemma-4-E2B-it-web.task",
   "models/promptmask-gemma3n-redactor-v1.litertlm",
   "models/gemma-3n-E2B-it-int4-Web.litertlm"
 ];

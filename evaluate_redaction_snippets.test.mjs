@@ -1,8 +1,12 @@
 import assert from "node:assert/strict";
+import { promises as fs } from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 import {
   evaluateRedaction,
   extractStructuredPii,
+  findDefaultModel,
   parseArgs,
   parseSnippetsFile
 } from "./evaluate_redaction_snippets.mjs";
@@ -64,13 +68,32 @@ function testEvaluateRedactionFailOnLeak() {
   assert.ok(result.reasons[0].includes("123-45-6789"));
 }
 
-function run() {
+async function testFindDefaultModelPrefersGemma4() {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "promptmask-find-model-"));
+
+  try {
+    await fs.mkdir(path.join(tempDir, "models"), { recursive: true });
+    await fs.writeFile(path.join(tempDir, "models", "promptmask-gemma3n-redactor-v1.litertlm"), "", "utf8");
+    await fs.writeFile(path.join(tempDir, "models", "gemma-4-E2B-it.litertlm"), "", "utf8");
+
+    const model = await findDefaultModel(tempDir);
+    assert.equal(model, path.join(tempDir, "models", "gemma-4-E2B-it.litertlm"));
+  } finally {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  }
+}
+
+async function run() {
   testParseArgsDefaults();
   testParseSnippetsFileWithHeaders();
   testExtractStructuredPii();
   testEvaluateRedactionPass();
   testEvaluateRedactionFailOnLeak();
+  await testFindDefaultModelPrefersGemma4();
   console.log("evaluate_redaction_snippets tests: OK");
 }
 
-run();
+run().catch((error) => {
+  console.error(error?.stack ?? error?.message ?? String(error));
+  process.exitCode = 1;
+});
