@@ -23,8 +23,6 @@ node_modules/
 .playwright-mcp.config.json
 test_ext_load.mjs
 
-#plans and PRD
-docs/
 
 .DS_Store
 
