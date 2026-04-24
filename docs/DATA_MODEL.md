@@ -116,7 +116,7 @@ interface RedactionConfig {
 
 ## 3. PII taxonomy
 
-7 categories × 24 placeholder keys. Source of truth: [`CATEGORY_TO_PLACEHOLDER_KEYS` in offscreen_utils.mjs:171](../extension/offscreen_utils.mjs).
+7 categories × 24 placeholder keys. Source of truth: [`CATEGORY_TO_PLACEHOLDER_KEYS` in offscreen_utils.mjs:173](../extension/offscreen_utils.mjs).
 
 | Category | Placeholder keys | Example before → after |
 |---|---|---|
@@ -145,7 +145,7 @@ Output: [NAME 1] emailed [NAME 2], then [NAME 1] emailed [NAME 3].
 /\[([A-Z_]+)\s+\d+\]/g
 ```
 
-Used by `extractPlaceholderKeys` in [offscreen_utils.mjs:288](../extension/offscreen_utils.mjs).
+Used by `extractPlaceholderKeys` in [offscreen_utils.mjs:290](../extension/offscreen_utils.mjs).
 
 ---
 
@@ -187,17 +187,16 @@ You previously used disallowed placeholder tags: [X N], [Y N].
 Those tags are disabled for this request. Redact without them.
 ```
 
-See `buildCorrectionPrompt` in [offscreen_utils.mjs:272](../extension/offscreen_utils.mjs).
+See `buildCorrectionPrompt` in [offscreen_utils.mjs:274](../extension/offscreen_utils.mjs).
 
 ---
 
 ## 5. Validation rules (content script)
 
-From `looksLikeValidRedaction` in [content_script.js:1203](../extension/content_script.js):
+From `looksLikeValidRedaction` in [content_script.js:1176](../extension/content_script.js):
 
-1. Output must be truthy and non-empty.
-2. If output differs from input, it must contain at least one `[KEY N]` placeholder.
-3. `len(output) >= 0.35 * len(input)` **or** `len(output) >= 12`.
+1. Output must be truthy and non-empty (after trimming whitespace).
+2. If the original is >80 characters, the redacted output must be ≥20 characters (prevents collapsed/empty model output from being accepted).
 4. The literal text between placeholders in the output must appear in the original input in the same order (enforced by `literalSegmentsAppearInOrder`).
 
 If any check fails, the original text is restored and an error toast is shown.

@@ -35,36 +35,36 @@ Message router. ~91 lines, no durable state.
 
 ---
 
-## `extension/content_script.js` (~1640 lines)
+## `extension/content_script.js` (~1564 lines)
 
 The biggest and most defensive file. Organized roughly:
 
 | Section | Approx. lines | What lives there |
 |---|---|---|
-| Constants & selectors | 1–110 | `COMPOSER_SELECTORS`, storage keys, timing constants |
-| Logging / small helpers | 110–330 | `log`, `warn`, safe DOM helpers |
-| Spinner / toast / download banner UI | 330–1020 | DOM-built floating UI (inline styles, high z-index) |
-| Composer text I/O | 520–680 | `getComposerText`, `setComposerText`, `applyComposerText` |
-| Settings | 600–680 | `loadSettings`, `getCategoryConfig`, `getEnabledPlaceholders` |
-| Composer detection | 685–770 | `findComposer`, element scoring |
-| Event predicates | 1120–1260 | `isEnterSubmit`, `shouldBypassSendInterception`, `looksLikeValidRedaction`, `literalSegmentsAppearInOrder` |
-| Send-interception state machine | 1280–1425 | `redactAndPreview`, `handleSendAction`, `enterPreview`, `resetToIdle`, `allowNativeSubmit` |
-| Composer binding | 1425–1510 | `bindComposer`, `observeComposer` |
-| Global fallback handlers | 1512–1616 | Document-level capture-phase listeners |
-| `init()` | 1618–1622 | Entry point |
+| Constants & selectors | 1–110 | `COMPOSER_SELECTORS`, `SEND_BUTTON_SELECTORS`, storage keys, timing constants |
+| Logging / small helpers | 110–310 | `log`, `warn`, safe DOM helpers |
+| Spinner / toast / download banner UI | 310–500 | DOM-built floating UI (inline styles, high z-index) |
+| Composer text I/O | 473–585 | `getComposerText`, `setComposerText`, `applyComposerText` |
+| Settings | 586–658 | `loadSettings`, `getCategoryConfig`, `getEnabledPlaceholders` |
+| Composer detection | 658–780 | `findComposer`, element scoring |
+| Event predicates | 1093–1175 | `isEnterSubmit`, `shouldBypassSendInterception`, `looksLikeValidRedaction` |
+| Send-interception state machine | 1214–1422 | `redactAndPreview`, `handleSendAction`, `enterPreview`, `resetToIdle`, `allowNativeSubmit` |
+| Composer binding | 1352–1422 | `bindComposer`, `observeComposer` |
+| Global fallback handlers | 1439–1544 | Document-level capture-phase listeners |
+| `init()` | 1545–1548 | Entry point |
 
 ### Key functions
 
 | Function | Lines | Purpose |
 |---|---|---|
-| `findComposer()` | 685–759 | Scores candidates from `COMPOSER_SELECTORS`, prefers visible focused editable elements |
-| `applyComposerText(composer, text)` | 528–546 | Tries 4 write strategies in order: (1) `execCommand('selectAll')` + `execCommand('insertText')`, (2) synthetic `beforeinput`, (3) synthetic `paste` via `ClipboardEvent`, (4) direct DOM mutation. Returns `true` on first success. |
-| `looksLikeValidRedaction(orig, red)` | 1203–1235 | Sanity checks: truthy; if changed, has placeholders; length ratio ≥ 0.35 or ≥ 12 chars; placeholder-separated literal segments appear in `orig` in order |
-| `redactAndPreview({composer, sendButton})` | 1287–1388 | Orchestrator: reads state, sends message, validates, writes, shows toast |
-| `handleSendAction(event)` | 1390–1423 | State machine: IDLE → intercept + redact; PREVIEW → pass through |
-| `bindComposer(composer)` | 1425–1494 | Attaches keydown/input/focus listeners, plus form `submit` and send-button `click` |
-| `bindGlobalFallbackHandlers()` | 1512–1616 | Document-level safety net for composers that appear after SPA navigation |
-| `init()` | 1618–1622 | `loadSettings()` + `observeComposer()` + `bindGlobalFallbackHandlers()` |
+| `findComposer()` | 658–733 | Scores candidates from `COMPOSER_SELECTORS`, prefers visible focused editable elements |
+| `applyComposerText(composer, text)` | 501–519 | Tries 4 write strategies in order: (1) `execCommand('selectAll')` + `execCommand('insertText')`, (2) synthetic `beforeinput`, (3) synthetic `paste` via `ClipboardEvent`, (4) direct DOM mutation. Returns `true` on first success. |
+| `looksLikeValidRedaction(orig, red)` | 1176–1180 | Sanity checks: truthy and non-empty; if original is >80 chars then redacted must be ≥20 chars |
+| `redactAndPreview({composer, sendButton})` | 1214–1315 | Orchestrator: reads state, sends message, validates, writes, shows toast |
+| `handleSendAction(event, composer)` | 1317–1351 | State machine: IDLE → intercept + redact; PREVIEW → pass through |
+| `bindComposer(composer)` | 1352–1422 | Attaches keydown/input/focus listeners, plus form `submit` and send-button `click` |
+| `bindGlobalFallbackHandlers()` | 1439–1544 | Document-level safety net for composers that appear after SPA navigation |
+| `init()` | 1545 | `loadSettings()` + `observeComposer()` + `bindGlobalFallbackHandlers()` |
 
 ### State variables
 
@@ -73,50 +73,56 @@ The biggest and most defensive file. Organized roughly:
 | `state.phase` | `"idle" \| "redacted_preview"` | Send-interception phase (`PHASE_IDLE` / `PHASE_PREVIEW` constants) |
 | `state.running` | `boolean` | True while a redaction request is in-flight |
 | `state.lastFocusedComposer` | `HTMLElement \| null` | Most recently focused composer element |
+| `state.lastFocusedAt` | `number` | Timestamp of last focus event |
+| `state.modelReadyForSession` | `boolean` | True once the model has reported `status: ready` in this session |
 | `state.nativeSubmitBypass` | `boolean` | True during the passthrough window after a successful redaction |
+| `state.nativeSubmitComposer` | `HTMLElement \| null` | Composer associated with the current passthrough bypass |
+| `state.nativeSubmitBypassUntil` | `number` | Timestamp when the bypass window expires (NATIVE_SUBMIT_BYPASS_MS = 1200 ms) |
 
 ---
 
-## `extension/offscreen.js` (~135 lines)
+## `extension/offscreen.js` (~138 lines)
 
 | Symbol | Lines | Purpose |
 |---|---|---|
-| `WASM_URL` | L~5 | URL to `extension/lib/wasm/` resolved via `chrome.runtime.getURL` |
+| `WASM_URL` | L9 | URL to `extension/lib/wasm/` resolved via `chrome.runtime.getURL` |
+| `MAX_TOKENS` | L10 | `16384` — token budget passed to `LlmInference.createFromOptions` |
 | `llmInferenceInstance` | module-level | Cached `LlmInference` (never recreated) |
 | `inferenceQueue` | `Promise` chain | Serializes concurrent prompts |
-| `initModel()` | 18–53 | Lazy init; writes `status: ready` on success, `status: error` on failure |
+| `initModel()` | 17–53 | Lazy init; writes `status: ready` on success, `status: error` on failure |
 | `runInference(prompt)` | 55–74 | `instance.generateResponse(prompt)` with a `generate()` fallback |
 | `enqueueInference(task)` | 76–80 | `inferenceQueue = inferenceQueue.then(task)` |
-| `chrome.runtime.onMessage` | 82–134 | Handles `LLM_PROMPT`; builds prompt via `offscreen_utils`, runs inference, runs correction retry if needed, posts `LLM_RESULT` |
+| `chrome.runtime.onMessage` | 82–138 | Handles `LLM_PROMPT`; builds prompt via `offscreen_utils`, runs inference, runs correction retry if needed, posts `LLM_RESULT` |
 
 **Why serialize inference?** MediaPipe's `LlmInference` is not safe to call concurrently on the same instance. The promise-chain queue ensures FIFO ordering without pulling in a library.
 
 ---
 
-## `extension/offscreen_utils.mjs` (~329 lines)
+## `extension/offscreen_utils.mjs` (~338 lines)
 
 Pure functions. Unit-tested in `offscreen_utils.test.mjs`.
 
 | Symbol | Lines | Purpose |
 |---|---|---|
 | `PROMPT_PREAMBLE` | L1 | System instruction |
-| `CATEGORY_PLACEHOLDER_LINES` | L7–L46 | Per-category placeholder schema text |
-| `CATEGORY_RULES` | L59–L87 | Per-category extra heuristics |
-| `PROMPT_EXAMPLES` | L89–L166 | 12 in-context examples, each tagged with categories |
-| `CATEGORY_TO_PLACEHOLDER_KEYS` | L171 | `Record<CategoryKey, string[]>` |
-| `buildRedactionPrompt(enabledKeys)` | L181–L214 | Filters preamble/rules/examples to enabled categories |
-| `REDACTION_PROMPT` | L231 | Prebuilt "all categories enabled" prompt |
-| `getEnabledCategoryKeys(config)` | L233–L240 | `Object.entries(config.categories).filter(...)` |
-| `getEnabledPlaceholderKeys(config)` | L242–L251 | Maps enabled categories → placeholder keys |
-| `buildPrompt(text, config)` | L253–L270 | Wraps with Gemma turn framing |
-| `buildCorrectionPrompt(text, config, bad)` | L272–L286 | Self-correction prompt |
-| `extractPlaceholderKeys(text)` | L288–L302 | Regex `/\[([A-Z_]+)\s+\d+\]/g` |
-| `findDisallowedPlaceholderKeys(text, config)` | L304–L311 | Set difference vs. `getEnabledPlaceholderKeys` |
-| `normalizeOutput(raw)` | L313–L328 | Strips `<start_of_turn>model` prefix and `<end_of_turn>` suffix |
+| `CATEGORY_PLACEHOLDER_LINES` | L9–L48 | Per-category placeholder schema text |
+| `GENERIC_NUMBERING_RULES` | L50–L60 | Shared numbering and de-duplication rules (applied to all prompts) |
+| `CATEGORY_RULES` | L61–L89 | Per-category extra heuristics |
+| `PROMPT_EXAMPLES` | L91–L169 | 14 in-context examples, each tagged with categories |
+| `CATEGORY_TO_PLACEHOLDER_KEYS` | L173 | `Record<CategoryKey, string[]>` |
+| `buildRedactionPrompt(enabledKeys)` | L183–L216 | Filters preamble/rules/examples to enabled categories |
+| `REDACTION_PROMPT` | L233 | Prebuilt "all categories enabled" prompt |
+| `getEnabledCategoryKeys(config)` | L235–L243 | `Object.entries(config.categories).filter(...)` |
+| `getEnabledPlaceholderKeys(config)` | L244–L253 | Maps enabled categories → placeholder keys |
+| `buildPrompt(text, config)` | L255–L272 | Wraps with Gemma turn framing |
+| `buildCorrectionPrompt(text, config, bad)` | L274–L288 | Self-correction prompt |
+| `extractPlaceholderKeys(text)` | L290–L304 | Regex `/\[([A-Z_]+)\s+\d+\]/g` |
+| `findDisallowedPlaceholderKeys(text, config)` | L306–L313 | Set difference vs. `getEnabledPlaceholderKeys` |
+| `normalizeOutput(raw)` | L315–L338 | Strips `<start_of_turn>model` prefix, `<end_of_turn>` suffix, and continuation markers |
 
 ---
 
-## `extension/model_cache.mjs` (~323 lines)
+## `extension/model_cache.mjs` (~328 lines)
 
 | Symbol | Lines | Purpose |
 |---|---|---|
@@ -124,32 +130,34 @@ Pure functions. Unit-tested in `offscreen_utils.test.mjs`.
 | `MODEL_CACHE_NAME` | L6 | `"promptmask-model-cache-v1"` |
 | `MODEL_STATE_KEY` | L7 | `"promptmask_model_state_v1"` |
 | `MODEL_EXPECTED_BYTES` | L8 | ~2 GB hint |
-| `createDefaultModelState()` | 13–26 | Initial state factory |
-| `normalizeModelState(raw)` | 28–55 | Merge-with-defaults, type-safe |
-| `isModelReady(state)` | 57–59 | `state.status === "ready"` |
-| `formatByteCount(n)` | 61–77 | `"2.5 GB"` formatter |
-| `describeModelState(state)` | 79–117 | Human-readable summary + detail |
-| `readModelState()` / `writeModelState()` | 119–141 | Storage I/O |
-| `openCachedModelResponse()` | 143–152 | `cache.match(url)` |
-| `deleteCachedModel()` | 154–163 | Clears cache + resets state |
-| `requestPersistentStorage()` | 165–175 | `navigator.storage.persist()` |
-| `shouldEmitProgress(last, now, bytes)` | 177–185 | Throttle (≥ 750 ms or ≥ 8 MB) |
-| `createProgressReader(resp, total)` | 187–245 | Wraps stream, emits progress |
-| `getModelAssetReader()` | 247–322 | Main entry: cache check → fetch + `tee()` on miss → returns `ReadableStream` for MediaPipe |
+| `MODEL_DISPLAY_SIZE` | L9 | `"2 GB"` display string |
+| `createDefaultModelState()` | 14–27 | Initial state factory |
+| `normalizeModelState(raw)` | 29–57 | Merge-with-defaults, type-safe |
+| `isModelReady(state)` | 58–60 | `state.status === "ready"` |
+| `formatByteCount(n)` | 62–78 | `"2.50 GB"` formatter |
+| `describeModelState(state)` | 84–124 | Human-readable summary + detail |
+| `readModelState()` / `writeModelState()` | 125–147 | Storage I/O |
+| `openCachedModelResponse()` | 149–158 | `cache.match(url)` |
+| `deleteCachedModel()` | 160–170 | Clears cache + resets state |
+| `requestPersistentStorage()` | 171–181 | `navigator.storage.persist()` |
+| `shouldEmitProgress(prev, next)` | 183–191 | Throttle (≥ 750 ms or ≥ 8 MB) |
+| `createProgressReader(stream, total)` | 193–251 | Wraps stream, emits progress |
+| `getModelAssetReader()` | 253–328 | Main entry: cache check → fetch + `tee()` on miss → returns `ReadableStream` for MediaPipe |
 
 ---
 
-## `extension/popup.js` (~207 lines)
+## `extension/popup.js` (~206 lines)
 
 | Symbol | Lines | Purpose |
 |---|---|---|
 | `STORAGE_KEY` | L3 | `"promptmask_settings_v1"` |
-| `SITE_TOGGLE_IDS` | L5–L11 | Map |
-| `CATEGORY_TOGGLE_IDS` | L13–L21 | Map |
-| `DEFAULT_SETTINGS` | L23–L40 | All enabled |
-| `setStatus(state)` | 49–61 | "Saved" / "Saving" / "Error" footer |
-| `setPillState(anyEnabled)` | 63–71 | Header pill |
+| `SITE_TOGGLE_IDS` | L5–11 | Map |
+| `CATEGORY_TOGGLE_IDS` | L13–21 | Map |
+| `DEFAULT_SETTINGS` | L23–40 | All enabled |
+| `setStatus(text, kind)` | 49–62 | "Saved" / "Saving" / "Error" footer |
+| `setPillState(siteSettings)` | 63–71 | Header pill (active if any site is enabled) |
 | `renderModelState(state)` | 73–81 | Model status block |
+| `mergeSettings(raw)` | 83–107 | Merge raw storage value with defaults |
 | `readSettingsFromUI()` | 121–136 | Checkbox → object |
 | `applySettingsToUI(settings)` | 138–148 | Object → checkboxes |
 | `persistSettings()` | 150–160 | Save + update pill |

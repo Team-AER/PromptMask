@@ -263,18 +263,18 @@ sequenceDiagram
 
 ## 6. Component Reference
 
-### 6.1 `extension/content_script.js` (~1640 lines)
+### 6.1 `extension/content_script.js` (~1564 lines)
 
 Injected into every supported AI chat page at `document_start`, runs in all frames.
 
 | Concern | Key functions / line refs |
 |---|---|
-| **Composer detection** | `COMPOSER_SELECTORS` (~L1–L48, 47 selectors for textarea / contenteditable / ProseMirror / Lexical / rich-textarea), `findComposer()` (L685–L759), `bindComposer()` (L1425–L1494) |
-| **Send interception** | `handleSendAction()` (L1390–L1423) — two-phase (idle → preview); `isEnterSubmit()` (L1120), `shouldBypassSendInterception()` (L1149) |
-| **Redaction orchestration** | `redactAndPreview()` (L1287–L1388) |
-| **Composer write-back** | `applyComposerText()` (L528–L546) — 4 strategies (`execCommand`, synthetic `beforeinput`, synthetic `paste` ClipboardEvent, direct DOM) |
-| **Validation** | `looksLikeValidRedaction()` (L1203–L1235), `literalSegmentsAppearInOrder()` (L1237–L1253) |
-| **Settings** | `SETTINGS_STORAGE_KEY = "promptmask_settings_v1"` (L107), `loadSettings()` (L613), `getCategoryConfig()` (L657), `getEnabledPlaceholders()` (L661) |
+| **Composer detection** | `COMPOSER_SELECTORS` (~L1–L47, 46 selectors for textarea / contenteditable / ProseMirror / Lexical / rich-textarea), `findComposer()` (L658–L733), `bindComposer()` (L1352–L1422) |
+| **Send interception** | `handleSendAction()` (L1317–L1351) — two-phase (idle → preview); `isEnterSubmit()` (L1093), `shouldBypassSendInterception()` (L1122) |
+| **Redaction orchestration** | `redactAndPreview()` (L1214–L1315) |
+| **Composer write-back** | `applyComposerText()` (L501–L519) — 4 strategies (`execCommand`, synthetic `beforeinput`, synthetic `paste` ClipboardEvent, direct DOM) |
+| **Validation** | `looksLikeValidRedaction()` (L1176) |
+| **Settings** | `SETTINGS_STORAGE_KEY = "promptmask_settings_v1"` (L107), `loadSettings()` (L586), `getCategoryConfig()` (L630), `getEnabledPlaceholders()` (L634) |
 | **UI** | `showSpinner/hideSpinner` (L337–L369), `showToast()` (L942), `showDownloadProgress()` (L974), `setBusy()` (L1057) |
 | **Global listeners** | `bindGlobalFallbackHandlers()` (L1512–L1616) — capture-phase document listeners for focusin / input / keydown / pointerdown / click |
 | **Entrypoint** | `init()` (L1618) → `loadSettings` + `observeComposer` + `bindGlobalFallbackHandlers` |
@@ -297,28 +297,29 @@ Hosts MediaPipe and serializes inference calls.
 
 | Symbol | Purpose |
 |---|---|
-| `initModel()` (L18–L53) | Lazy; resolves WASM via `FilesetResolver.forGenAiTasks`, calls `getModelAssetReader()`, creates `LlmInference` with `maxTokens: 4096, temperature: 0, topK: 1, randomSeed: 1` |
+| `initModel()` (L17–L53) | Lazy; resolves WASM via `FilesetResolver.forGenAiTasks`, calls `getModelAssetReader()`, creates `LlmInference` with `maxTokens: 16384, temperature: 0, topK: 1, randomSeed: 1` |
 | `runInference()` (L55–L74) | `generateResponse()` wrapper (falls back to `generate()`) |
 | `enqueueInference()` (L76–L80) | Promise-chain queue to serialize concurrent prompts |
 | `onMessage` (L82–L134) | Handles `LLM_PROMPT`, builds prompt, runs inference, runs **correction retry** if disallowed keys are found, posts `LLM_RESULT` |
 
-### 6.4 `extension/offscreen_utils.mjs` (~329 lines)
+### 6.4 `extension/offscreen_utils.mjs` (~338 lines)
 
 Pure-function helpers — fully unit-tested.
 
 | Symbol | Purpose |
 |---|---|
 | `PROMPT_PREAMBLE` (L1) | System instruction |
-| `CATEGORY_PLACEHOLDER_LINES` (L7–L46) | Per-category placeholder schema (`[NAME N]`, `[SSN N]`, …) |
-| `CATEGORY_RULES` (L59–L87) | Extra heuristics (e.g., DOBs, partial addresses) |
-| `PROMPT_EXAMPLES` (L89–L166) | 12 in-context examples |
-| `CATEGORY_TO_PLACEHOLDER_KEYS` (L171) | Maps 7 categories → allowed placeholder keys |
-| `buildRedactionPrompt(enabledKeys)` (L181) | Filters preamble/rules/examples to enabled categories only |
-| `buildPrompt(text, cfg)` (L253) | Wraps with Gemma `<start_of_turn>user … <start_of_turn>model` framing |
-| `buildCorrectionPrompt(text, cfg, bad)` (L272) | Self-correction prompt when model emits disabled tags |
-| `extractPlaceholderKeys()` (L288) | Regex `/\[[A-Z_]+\s+\d+\]/g` |
-| `findDisallowedPlaceholderKeys()` (L304) | Set-difference vs. enabled keys |
-| `normalizeOutput()` (L313) | Strips Gemma turn tags |
+| `CATEGORY_PLACEHOLDER_LINES` (L9–L48) | Per-category placeholder schema (`[NAME N]`, `[SSN N]`, …) |
+| `GENERIC_NUMBERING_RULES` (L50–L60) | Shared numbering and de-duplication rules applied to all prompts |
+| `CATEGORY_RULES` (L61–L89) | Extra heuristics (e.g., DOBs, partial addresses) |
+| `PROMPT_EXAMPLES` (L91–L169) | 14 in-context examples |
+| `CATEGORY_TO_PLACEHOLDER_KEYS` (L173) | Maps 7 categories → allowed placeholder keys |
+| `buildRedactionPrompt(enabledKeys)` (L183) | Filters preamble/rules/examples to enabled categories only |
+| `buildPrompt(text, cfg)` (L255) | Wraps with Gemma `<start_of_turn>user … <start_of_turn>model` framing |
+| `buildCorrectionPrompt(text, cfg, bad)` (L274) | Self-correction prompt when model emits disabled tags |
+| `extractPlaceholderKeys()` (L290) | Regex `/\[[A-Z_]+\s+\d+\]/g` |
+| `findDisallowedPlaceholderKeys()` (L306) | Set-difference vs. enabled keys |
+| `normalizeOutput()` (L315) | Strips Gemma turn tags and continuation markers |
 
 ### 6.5 `extension/model_cache.mjs` (~323 lines)
 
@@ -487,9 +488,9 @@ Category-aware prompt building (`buildRedactionPrompt`) ensures a disabled categ
 
 1. **`normalizeOutput`** — strips Gemma framing tags and trailing noise.
 2. **`findDisallowedPlaceholderKeys`** — if the model emits e.g. `[SSN 1]` when `governmentLegal` is disabled, a **correction prompt** is built listing the offending tags and the request is re-run once.
-3. **`looksLikeValidRedaction`** (content script) — sanity-checks the result before writing it to the composer:
-    - Length ratio of redacted vs. original ≥ 0.35 (or ≥ 12 chars)
-    - If any non-placeholder text changed, the literal segments between placeholders must appear in the original in the same order
+3. **`looksLikeValidRedaction`** (content script, L1176) — sanity-checks the result before writing it to the composer:
+    - Output must be truthy and non-empty
+    - If the original is >80 chars, the redacted result must be ≥20 chars (guards against collapsed/empty model output)
     - If checks fail → restore original text + error toast
 
 ### Send-interception state machine
@@ -585,8 +586,8 @@ All test files are plain `.mjs` runnable with `node`.
 
 ### Model
 
-- **Gemma 3n E2B IT** (`google/gemma-3n-E2B-it-litert-lm`) in LiteRT-LM format — primary model
-- **Gemma 4 E2B IT** (task format) — alternate, referenced in `model_cache.mjs`
+- **Gemma 4 E2B IT** (`litert-community/gemma-4-E2B-it-litert-lm`) in `.task` format — the extension's primary runtime model (referenced in `model_cache.mjs`)
+- **Gemma 3n E2B IT** and other variants present in `models/` — used only for local CLI evaluation with the `lit` tool; not loaded by the extension
 
 ---
 

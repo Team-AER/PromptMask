@@ -133,22 +133,24 @@ The content script runs a small state machine per composer element. This is wher
 
 ```mermaid
 stateDiagram-v2
-    [*] --> IDLE
+    [*] --> idle
 
-    IDLE --> REDACTING: user submits<br/>(Enter without Shift, or Send click)<br/>[preventDefault + stopImmediatePropagation]
+    idle --> running: user submits<br/>(Enter without Shift, or Send click)<br/>[preventDefault + stopImmediatePropagation]
 
-    REDACTING --> PREVIEW: LLM_RESULT ok<br/>+ looksLikeValidRedaction ✓<br/>+ applyComposerText ✓
+    running --> redacted_preview: LLM_RESULT ok<br/>+ looksLikeValidRedaction ✓<br/>+ applyComposerText ✓
 
-    REDACTING --> IDLE: failure<br/>(invalid output / error / user edit)<br/>[restore original + toast]
+    running --> idle: failure<br/>(invalid output / error / user edit)<br/>[restore original + toast]
 
-    PREVIEW --> PASSTHROUGH: user submits again<br/>within bypass window (1200ms)<br/>[allowNativeSubmit]
+    redacted_preview --> passthrough: user submits again<br/>within bypass window (1200ms)<br/>[allowNativeSubmit → nativeSubmitBypass=true]
 
-    PREVIEW --> REDACTING: user edits & resubmits
+    redacted_preview --> running: user edits & resubmits
 
-    PASSTHROUGH --> IDLE: event propagates to site<br/>[resetToIdle]
+    passthrough --> idle: event propagates to site<br/>[resetToIdle]
 ```
 
-**Why two phases?** The extension can't submit for the user — that would require synthesizing a trusted event. Instead it shows the redacted version and asks the user to confirm with a second Enter. The `PASSTHROUGH` state exists for exactly one event dispatch.
+**Code mapping:** `idle` = `PHASE_IDLE` constant; `running` = `state.running === true` (no dedicated phase value); `redacted_preview` = `PHASE_PREVIEW` constant; `passthrough` = `state.nativeSubmitBypass === true`.
+
+**Why two phases?** The extension can't submit for the user — that would require synthesizing a trusted event. Instead it shows the redacted version and asks the user to confirm with a second Enter. The passthrough window (`nativeSubmitBypass`) exists for exactly one event dispatch (1200 ms timeout).
 
 ---
 
@@ -196,7 +198,7 @@ Key invariant: **original (un-redacted) text must never cross the `content_scrip
 | Use the **Cache API** for model storage, not IndexedDB | Cache stores `Response` objects natively; MediaPipe accepts a `ReadableStream`, avoiding a full-in-memory copy of 2 GB |
 | **`tee()`** the download stream | Write to cache + feed inference simultaneously; the second run is instant because the cache is already warm |
 | **Service worker stays stateless** (just a Map of pending callbacks) | MV3 can terminate the SW at any time; all durable state lives in `chrome.storage.local` and the offscreen doc |
-| **Two-phase submit** (REDACTING → PREVIEW → PASSTHROUGH) | Extensions can't synthesize trusted events that bypass site security; the user's second Enter is the only reliable trigger |
+| **Two-phase submit** (`idle` → `running` → `redacted_preview` → passthrough) | Extensions can't synthesize trusted events that bypass site security; the user’s second Enter is the only reliable trigger |
 | **Disallowed-key correction retry** | Open-weight models occasionally emit tags they weren't told about; one correction round has measurable improvement (see `category_toggle_eval_results.json`) |
 | **Deterministic decoding** (`temperature=0, topK=1, seed=1`) | Users expect the same input to produce the same redaction; also makes evals reproducible |
 

@@ -95,14 +95,11 @@ const state = {
   lastFocusedAt: 0,
   modelReadyForSession: false,
   nativeSubmitBypass: false,
-  nativeSubmitComposer: null,
-  nativeSubmitBypassUntil: 0
+  suppressInputResetUntil: 0
 };
 let globalFallbackBound = false;
-let suppressInputReset = false;
 let nativeSubmitBypassTimer = 0;
 const handledSendEvents = new WeakSet();
-const NATIVE_SUBMIT_BYPASS_MS = 1200;
 
 const SETTINGS_STORAGE_KEY = "promptmask_settings_v1";
 const MODEL_STATE_KEY = "promptmask_model_state_v1";
@@ -511,6 +508,7 @@ async function applyComposerText(composer, value) {
     }
     await waitForUiUpdate();
     if (targets.some((target) => composerReflectsValue(target, value))) {
+      state.suppressInputResetUntil = Date.now() + 750;
       return true;
     }
   }
@@ -1103,33 +1101,28 @@ function enterPreview() {
 }
 
 function resetToIdle() {
+  console.info("[PromptMask] resetToIdle called", new Error().stack);
   state.phase = PHASE_IDLE;
   hideToast();
 }
 
-function allowNativeSubmit(composer) {
+function allowNativeSubmit() {
   state.nativeSubmitBypass = true;
-  state.nativeSubmitComposer = composer ?? null;
-  state.nativeSubmitBypassUntil = Date.now() + NATIVE_SUBMIT_BYPASS_MS;
   window.clearTimeout(nativeSubmitBypassTimer);
+  // Safety backstop: clear the flag after 30 s in case the normal signal
+  // (trusted input from the user's next typing session) never arrives.
   nativeSubmitBypassTimer = window.setTimeout(() => {
     state.nativeSubmitBypass = false;
-    state.nativeSubmitComposer = null;
-    state.nativeSubmitBypassUntil = 0;
-  }, NATIVE_SUBMIT_BYPASS_MS);
+  }, 30_000);
 }
 
-function shouldBypassSendInterception(composer) {
-  if (!state.nativeSubmitBypass || Date.now() > state.nativeSubmitBypassUntil) {
-    state.nativeSubmitBypass = false;
-    state.nativeSubmitComposer = null;
-    state.nativeSubmitBypassUntil = 0;
-    return false;
-  }
-  if (!state.nativeSubmitComposer || !composer) {
-    return true;
-  }
-  return state.nativeSubmitComposer === composer;
+function clearNativeSubmitBypass() {
+  state.nativeSubmitBypass = false;
+  window.clearTimeout(nativeSubmitBypassTimer);
+}
+
+function shouldBypassSendInterception() {
+  return state.nativeSubmitBypass === true;
 }
 
 function hideToast() {
@@ -1277,7 +1270,6 @@ async function redactAndPreview({ composer, sendButton }) {
       console.warn("[Gemma Redaction] Suspicious output:", redacted);
       throw new Error("Redaction output looks incomplete.");
     }
-    suppressInputReset = true;
     const expectedText = redacted && redacted.trim() ? redacted : originalText;
     const writeSucceeded = await applyComposerText(composer, expectedText);
     if (!writeSucceeded) {
@@ -1287,9 +1279,7 @@ async function redactAndPreview({ composer, sendButton }) {
 
     state.modelReadyForSession = true;
     enterPreview();
-    // Allow an extra frame for trailing async input events to settle.
     await waitForUiUpdate();
-    suppressInputReset = false;
     showToast("\u2705 Redacted \u2014 press Enter to send", false);
   } catch (err) {
     // Only attempt restoration if the composer was actually changed; blindly
@@ -1307,7 +1297,6 @@ async function redactAndPreview({ composer, sendButton }) {
   } finally {
     chrome.runtime.onMessage.removeListener(progressListener);
     hideDownloadProgress();
-    suppressInputReset = false;
     hideSpinner();
     setBusy(composer, sendButton, false);
     state.running = false;
@@ -1315,16 +1304,20 @@ async function redactAndPreview({ composer, sendButton }) {
 }
 
 function handleSendAction(event, composer) {
+  console.info("[PromptMask] handleSendAction", { phase: state.phase, running: state.running, bypass: state.nativeSubmitBypass, eventType: event?.type, isTrusted: event?.isTrusted });
   if (!shouldRedactOnCurrentPage()) {
+    console.info("[PromptMask] handleSendAction: site not enabled, returning");
     return;
   }
   if (event && handledSendEvents.has(event)) {
+    console.info("[PromptMask] handleSendAction: event already handled, returning");
     return;
   }
   if (event) {
     handledSendEvents.add(event);
   }
-  if (shouldBypassSendInterception(composer)) {
+  if (shouldBypassSendInterception()) {
+    console.info("[PromptMask] handleSendAction: bypass active, letting through");
     return;
   }
 
@@ -1335,7 +1328,8 @@ function handleSendAction(event, composer) {
 
   if (isPreviewReady()) {
     // Phase 2: user confirmed — let the event through to submit normally.
-    allowNativeSubmit(composer);
+    console.info("[PromptMask] preview confirmed — allowing native submit");
+    allowNativeSubmit();
     resetToIdle();
     return;
   }
@@ -1366,11 +1360,21 @@ function bindComposer(composer) {
     );
     composer.addEventListener(
       "input",
-      () => {
+      (event) => {
         rememberComposer(composer);
-        // User edited text while in preview — redaction is stale, reset.
-        if (isPreviewReady() && !suppressInputReset) {
-          resetToIdle();
+        console.info("[PromptMask] input event", { isTrusted: event.isTrusted, phase: state.phase });
+        // Reset only when the user genuinely edits the text (isTrusted=true).
+        // Framework-dispatched synthetic input events (Lexical state updates,
+        // React reconciliation, our own dispatchComposerInput after writing
+        // redacted text) always have isTrusted=false and must be ignored here,
+        // otherwise they would reset the preview phase before the user has a
+        // chance to confirm with Enter.
+        if (event.isTrusted && Date.now() >= state.suppressInputResetUntil) {
+          if (isPreviewReady()) {
+            console.info("[PromptMask] trusted input while in preview — resetting to idle");
+            resetToIdle();
+          }
+          clearNativeSubmitBypass();
         }
       },
       true
@@ -1382,6 +1386,7 @@ function bindComposer(composer) {
         if (!isEnterSubmit(event)) {
           return;
         }
+        console.info("[PromptMask] Enter keydown", { phase: state.phase, running: state.running, bypass: state.nativeSubmitBypass });
         handleSendAction(event, composer);
       },
       true
@@ -1463,8 +1468,12 @@ function bindGlobalFallbackHandlers() {
         (isEditableComposerElement(event.target) ? event.target : null);
       if (composer) {
         rememberComposer(composer);
-        if (isPreviewReady() && !suppressInputReset) {
-          resetToIdle();
+        if (event.isTrusted && Date.now() >= state.suppressInputResetUntil) {
+          if (isPreviewReady()) {
+            console.info("[PromptMask] global trusted input while in preview — resetting to idle");
+            resetToIdle();
+          }
+          clearNativeSubmitBypass();
         }
       }
     },
