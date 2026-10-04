@@ -1,7 +1,7 @@
 {
   "model": "gemma3-1b",
   "backend": "cpu",
-  "snippetsPath": "/Users/nidhibharani/Developer/PromptMask/test_cross_contamination.txt",
+  "snippetsPath": "test_cross_contamination.txt",
   "total": 16,
   "pass": 0,
   "warn": 11,
