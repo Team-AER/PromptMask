@@ -1,7 +1,7 @@
 {
   "model": "gemma3-1b",
   "backend": "cpu",
-  "snippetsPath": "/Users/nidhibharani/Developer/PromptMask/test_redaction_category_toggle.txt",
+  "snippetsPath": "test_redaction_category_toggle.txt",
   "total": 3,
   "pass": 1,
   "warn": 0,

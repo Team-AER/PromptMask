@@ -2,6 +2,8 @@
 
 # PromptMask
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 PromptMask is Team AER's Chrome extension for masking sensitive details in AI chat prompts. It uses Gemma on your device to replace values with numbered placeholders such as `[NAME 1]` and `[EMAIL 1]`. You review the text in the composer, then submit it again to send.
 
 The extension is Manifest V3, version **0.2.1**. Its product presentation lives in the [AER landing repository](https://github.com/Team-AER/aer-landing/tree/main/promptmask); this repository contains the extension, local model tools, and developer documentation.
@@ -119,4 +121,21 @@ Creating a bundle does not change the extension's pinned model. The separate Lit
 - [Technology overview](docs/TECH_STACK.md)
 - [Model publication checklist](docs/huggingface_publish_checklist.md)
 
-PromptMask builds on Google's Gemma and MediaPipe tooling and the LiteRT community's converted model assets. Their respective terms and notices continue to apply. Gemma model binaries are downloaded separately and are not committed in this repository. Preserve the [NOTICE](NOTICE) and applicable model terms when packaging or redistributing model files. This repository does not currently include a separate project-code licence file; model terms do not grant a licence to all project code.
+PromptMask builds on Google's Gemma and MediaPipe tooling and the LiteRT community's converted model assets. Their respective terms and notices continue to apply. Gemma model binaries are downloaded separately and are not committed in this repository. Preserve the [NOTICE](NOTICE) and applicable model terms when packaging or redistributing model files. Project and extension code are released under the [MIT License](LICENSE), with the extension copy in [extension/LICENSE](extension/LICENSE). The vendored MediaPipe runtime retains its [Apache License 2.0](extension/lib/LICENSE). Gemma model files are downloaded separately and are not covered by the MIT License; their model terms and use restrictions continue to apply.
+
+## Gemma compliance notes
+
+
+This repository does not commit Gemma model binaries into version control. Users download model files separately into `models/`, and those model files remain subject to Google's Gemma Terms of Use and Gemma Prohibited Use Policy.
+
+If you later change this project or the Chrome extension to download Gemma model files for users from your own source on first run, treat that as redistribution of Gemma. In that case you should:
+
+- keep a `NOTICE` file with the exact Gemma notice text in any package or distribution that includes the model files
+- provide recipients a copy or link to the current Gemma Terms of Use
+- provide clear notice that Gemma use is subject to the Section 3.2 use restrictions and the Prohibited Use Policy
+- add your own app or extension terms that make those use restrictions enforceable for your users
+- mark any modified Gemma files prominently if you ever modify, convert, or rebundle them
+
+For a future first-run model download flow, document the model source in user-facing docs or the extension onboarding screen. The terms do not appear to require naming the origin host, but disclosing the source is the practical way to tell users what they are downloading, who is redistributing it, and where the governing terms apply.
+
+This project is a local redaction helper, not a substitute for legal, medical, financial, or other licensed professional services. Review outputs before relying on them in sensitive workflows.
