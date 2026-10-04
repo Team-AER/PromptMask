@@ -273,7 +273,7 @@ async function evaluateToggleSnippets({ cwd, snippetsPath, model, litPath, backe
   return {
     model: resolvedModel,
     backend,
-    snippetsPath: path.resolve(cwd, snippetsPath),
+    snippetsPath: path.relative(cwd, path.resolve(cwd, snippetsPath)),
     total: results.length,
     pass: results.filter((r) => r.verdict === "pass").length,
     warn: results.filter((r) => r.verdict === "warn").length,

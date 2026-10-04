@@ -317,7 +317,7 @@ export async function evaluateSnippets({
   return {
     model: resolvedModel,
     backend,
-    snippetsPath: path.resolve(cwd, snippetsPath),
+    snippetsPath: path.relative(cwd, path.resolve(cwd, snippetsPath)),
     total: results.length,
     pass: results.filter((result) => result.verdict === "pass").length,
     warn: results.filter((result) => result.verdict === "warn").length,

@@ -1,5 +1,7 @@
 # PromptMask — On-Device AI Redaction
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Run Google's Gemma model locally on your device using MediaPipe's LLM Inference API. The Chrome extension uses a single WebGPU-optimized `.task` model.
 
 ## 🚀 Quick Start
@@ -126,7 +128,12 @@ python bundle_model.py \
 
 ## 📄 License
 
-This project uses Gemma models which are subject to [Google's Gemma Terms of Use](https://ai.google.dev/gemma/terms).
+PromptMask is released under the [MIT License](LICENSE).
+
+Third-party components keep their own licenses (see [NOTICE](NOTICE)):
+
+- The vendored MediaPipe runtime in `extension/lib/` (`genai_bundle.mjs` and `wasm/`) is licensed under the [Apache License 2.0](extension/lib/LICENSE).
+- Gemma model files are not part of this repository and are not covered by the MIT License. They are downloaded separately and are subject to [Google's Gemma Terms of Use](https://ai.google.dev/gemma/terms) and the [Gemma Prohibited Use Policy](https://ai.google.dev/gemma/prohibited_use_policy).
 
 ## ⚖️ Gemma Compliance Notes
 
