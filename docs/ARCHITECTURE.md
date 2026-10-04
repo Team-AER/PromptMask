@@ -1,234 +1,58 @@
-# Architecture
+# PromptMask architecture
 
-This document goes deeper than [DOCUMENTATION.md §4](DOCUMENTATION.md#4-system-architecture). It covers the **execution-context model**, **trust boundaries**, and the **key state machines** inside the extension.
-
----
-
-## 1. Execution contexts
-
-Chrome MV3 isolates code into several runtime contexts. PromptMask uses four, each with different capabilities:
+PromptMask separates chat-page integration, request routing, local inference, and settings into four Chrome extension contexts. See the [data flow](DATA_FLOW.md) and [component reference](COMPONENTS.md).
 
 ```mermaid
 flowchart TB
-    subgraph Browser["Chrome Browser"]
-        subgraph Tab["Host Tab (chat site)"]
-            Page[Page main world<br/>site's own JS]
-            CS[content_script.js<br/>isolated world]
-        end
-
-        subgraph Ext["Extension process"]
-            SW["service_worker.js<br/>(MV3 background)"]
-            OFF["offscreen.html<br/>(hidden document)"]
-            POP["popup.html<br/>(browser action)"]
-        end
-
-        subgraph Platform["Browser Platform APIs"]
-            MSG[chrome.runtime messaging]
-            STO[chrome.storage.local]
-            CACHE[Cache API]
-            GPU[WebGPU]
-        end
-    end
-
-    Page <-.DOM.-> CS
-    CS <-->|sendMessage| MSG
-    POP <-->|sendMessage| MSG
-    SW <-->|sendMessage| MSG
-    OFF <-->|sendMessage| MSG
-
-    SW <--> STO
-    CS <--> STO
-    POP <--> STO
-    OFF <--> STO
-
-    OFF --> CACHE
-    OFF --> GPU
-
-    classDef page fill:#fff8e1,stroke:#a0773a
-    classDef ext fill:#e3f2fd,stroke:#1565c0
-    classDef plat fill:#eceff1,stroke:#455a64
-    class Page,CS page
-    class SW,OFF,POP ext
-    class MSG,STO,CACHE,GPU plat
+    Page[Chat page DOM and site scripts] <--> CS[Content script]
+    CS <-->|Runtime messages| SW[MV3 service worker]
+    SW <-->|Request and result| OS[Offscreen document]
+    OS --> Helpers[Category prompt builder and output checks]
+    OS --> GPU[MediaPipe LLM using WebGPU and WASM]
+    OS <--> Cache[(Cache API model bytes)]
+    HF[Hugging Face delivery hosts] -->|Model download| Cache
+    Popup[Toolbar popup] <--> Settings[(Chrome local settings)]
+    Settings --> CS
+    OS --> Status[(Chrome local model state)]
+    Status --> Popup
+    Status --> SW
 ```
 
-### Capability matrix
+## Execution contexts
 
-| Context | DOM access | WebGPU | Cache API | Persistent state | Module imports |
-|---|---|---|---|---|---|
-| Page main world | ✅ full | ✅ | ✅ | ✅ | ✅ |
-| Content script (isolated world) | ✅ DOM only (no page JS globals) | ❌ | ❌ | ❌ (use messaging → SW) | ❌ (classic script) |
-| Service worker | ❌ | ❌ | ❌ | ❌ (ephemeral; use `storage`) | ✅ (`"type": "module"`) |
-| Offscreen document | ✅ (its own hidden DOM) | ✅ | ✅ | ✅ while alive | ✅ |
-| Popup | ✅ (own DOM) | ✅ | ✅ | ✅ while open | ✅ |
+| Context | Responsibility and lifetime |
+|---|---|
+| Content script | Reads/writes the chat DOM and captures submission events; reloads with the tab |
+| Service worker | Creates the offscreen document and routes requests/results; Chrome can suspend it |
+| Offscreen document | Hosts the model instance, inference queue, and cache access; model is reused while alive |
+| Popup | Reads/writes controls and displays model state while open |
 
-This capability asymmetry is why the architecture looks the way it does:
-- **Redaction must happen in the offscreen doc** — only it has WebGPU + Cache API.
-- **The service worker can't hold the model** — it gets killed; the offscreen doc doesn't.
-- **The content script can't call MediaPipe** — it has no module support and no WebGPU in isolated-world pages.
-- The service worker is therefore reduced to a **pure router**.
+The offscreen document supplies the document context used by this implementation for MediaPipe/WebGPU. The service worker has no DOM; its pending callbacks and progress subscribers are transient. Durable settings and state live in browser storage. Cache API use is a choice of the current model loader, not a claim that service workers lack that API.
 
----
-
-## 2. Logical component map
-
-```mermaid
-flowchart LR
-    subgraph I["Input layer (content script)"]
-        D[Composer detection<br/>COMPOSER_SELECTORS]
-        L[Event listeners<br/>capture-phase]
-        SM[Send state machine]
-    end
-
-    subgraph R["Redaction layer"]
-        RQ[Redaction request<br/>redactAndPreview]
-        V[Output validator<br/>looksLikeValidRedaction]
-        W[Composer writer<br/>applyComposerText]
-    end
-
-    subgraph T["Transport layer"]
-        SW[Service worker router]
-    end
-
-    subgraph E["Engine layer (offscreen)"]
-        PB[Prompt builder<br/>offscreen_utils]
-        IN[Inference runner<br/>offscreen.js]
-        G[Output guardrails<br/>findDisallowedPlaceholderKeys]
-    end
-
-    subgraph M["Model layer"]
-        MC[Model cache<br/>model_cache.mjs]
-        MP[MediaPipe LlmInference]
-        HF[(HuggingFace CDN)]
-    end
-
-    subgraph C["Config layer"]
-        PU[Popup UI]
-        SS[(chrome.storage.local)]
-    end
-
-    D --> L --> SM --> RQ
-    RQ --> SW --> IN
-    IN --> PB --> IN
-    IN --> MP --> IN
-    IN --> G --> IN
-    IN --> SW --> RQ
-    RQ --> V --> W
-
-    MC --> HF
-    MC --> MP
-    IN --> MC
-
-    PU <--> SS
-    RQ <--> SS
-    MC --> SS
-    SW --> SS
-```
-
----
-
-## 3. Send-interception state machine (content script)
-
-The content script runs a small state machine per composer element. This is where most of the subtlety lives — every chat site has different quirks around how Enter and the Send button dispatch events.
+## Submission states
 
 ```mermaid
 stateDiagram-v2
-    [*] --> idle
-
-    idle --> running: user submits<br/>(Enter without Shift, or Send click)<br/>[preventDefault + stopImmediatePropagation]
-
-    running --> redacted_preview: LLM_RESULT ok<br/>+ looksLikeValidRedaction ✓<br/>+ applyComposerText ✓
-
-    running --> idle: failure<br/>(invalid output / error / user edit)<br/>[restore original + toast]
-
-    redacted_preview --> passthrough: user submits again<br/>within bypass window (1200ms)<br/>[allowNativeSubmit → nativeSubmitBypass=true]
-
-    redacted_preview --> running: user edits & resubmits
-
-    passthrough --> idle: event propagates to site<br/>[resetToIdle]
+    [*] --> Idle
+    Idle --> Running: Enabled submission intercepted
+    Running --> Preview: Output accepted and composer updated
+    Running --> Idle: Error with best effort restoration
+    Preview --> Idle: User confirms and native submission proceeds
+    Preview --> Idle: User edits preview
 ```
 
-**Code mapping:** `idle` = `PHASE_IDLE` constant; `running` = `state.running === true` (no dedicated phase value); `redacted_preview` = `PHASE_PREVIEW` constant; `passthrough` = `state.nativeSubmitBypass === true`.
+The first submission is consumed. A successful redaction enters preview; a second submission proceeds through the site's own handler. Editing resets the preview so the next submission runs redaction again. The content script also uses a short native-submission bypass to avoid consuming related events twice.
 
-**Why two phases?** The extension can't submit for the user — that would require synthesizing a trusted event. Instead it shows the redacted version and asks the user to confirm with a second Enter. The passthrough window (`nativeSubmitBypass`) exists for exactly one event dispatch (1200 ms timeout).
+## Privacy boundaries
 
----
+Inference takes place in extension contexts without a cloud inference endpoint. Hugging Face receives model download requests; extension code does not attach the prompt to those requests. The chat site handles the eventual confirmed submission.
 
-## 4. Trust boundaries
+The original prompt is typed into the host page's DOM before interception. Isolated extension JavaScript does not hide that DOM from the site's scripts. Therefore, local inference does not guarantee that the site cannot read or transmit draft text. Disabled controls and unsupported submission paths also limit coverage.
 
-```mermaid
-flowchart LR
-    subgraph U["User's device (trusted)"]
-        direction TB
-        subgraph UT["Trusted: extension contexts"]
-            CS[content_script]
-            SW[service_worker]
-            OS[offscreen + model]
-        end
-        subgraph UU["Semi-trusted: host page"]
-            P[AI chat site JS]
-        end
-    end
+`chrome.storage.local` holds settings and model state, and the Cache API holds model bytes. There is no application prompt-history store in those APIs. However, `offscreen.js` currently logs full prompts and model output in the developer console, and other error logs can contain text. Treat diagnostic exports as potentially sensitive.
 
-    subgraph N["Network"]
-        HF[HuggingFace<br/>model download only]
-        AI[AI chat backend<br/>redacted text only]
-    end
+## Validation and failure handling
 
-    CS -.isolated world.- P
-    P -->|redacted prompt| AI
-    OS -->|HTTPS fetch<br/>model bytes| HF
+The model prompt includes enabled placeholder categories and examples. Output is normalized and checked for disallowed placeholder keys; one correction round is attempted before returning an error. The content script checks for empty or unusually short output and whether the editor reflects the replacement. These checks do not guarantee complete or correct masking.
 
-    classDef good fill:#e8f5e9,stroke:#2e7d32
-    classDef meh fill:#fff3e0,stroke:#ef6c00
-    classDef net fill:#eceff1,stroke:#455a64
-    class UT good
-    class UU meh
-    class N,HF,AI net
-```
-
-Key invariant: **original (un-redacted) text must never cross the `content_script → page main world` boundary except through `applyComposerText`, and only after passing `looksLikeValidRedaction`.** If the model output is rejected, the composer is restored to the original — the original never touches `window.fetch` etc. because it was already sitting in the composer.
-
----
-
-## 5. Why each design choice
-
-| Decision | Rationale |
-|---|---|
-| Use the **Cache API** for model storage, not IndexedDB | Cache stores `Response` objects natively; MediaPipe accepts a `ReadableStream`, avoiding a full-in-memory copy of 2 GB |
-| **`tee()`** the download stream | Write to cache + feed inference simultaneously; the second run is instant because the cache is already warm |
-| **Service worker stays stateless** (just a Map of pending callbacks) | MV3 can terminate the SW at any time; all durable state lives in `chrome.storage.local` and the offscreen doc |
-| **Two-phase submit** (`idle` → `running` → `redacted_preview` → passthrough) | Extensions can't synthesize trusted events that bypass site security; the user’s second Enter is the only reliable trigger |
-| **Disallowed-key correction retry** | Open-weight models occasionally emit tags they weren't told about; one correction round has measurable improvement (see `category_toggle_eval_results.json`) |
-| **Deterministic decoding** (`temperature=0, topK=1, seed=1`) | Users expect the same input to produce the same redaction; also makes evals reproducible |
-
----
-
-## 6. Failure modes & fallbacks
-
-```mermaid
-flowchart TB
-    A[Send action intercepted] --> B{Model ready?}
-    B -- no --> B1[Show download banner]
-    B1 --> B2{Download succeeds?}
-    B2 -- no --> ERR1[Toast: download failed<br/>restore original]
-    B2 -- yes --> C
-    B -- yes --> C[Inference]
-    C --> D{Output present?}
-    D -- no --> ERR2[Toast: empty output<br/>restore original]
-    D -- yes --> E{Disallowed keys?}
-    E -- yes --> E1[Correction retry]
-    E1 --> F
-    E -- no --> F{looksLikeValidRedaction?}
-    F -- no --> ERR3[Toast: validation failed<br/>restore original]
-    F -- yes --> G{applyComposerText<br/>one of 4 strategies works?}
-    G -- no --> ERR4[Toast: write failed<br/>restore original]
-    G -- yes --> OK[Enter PREVIEW phase]
-
-    classDef err fill:#ffebee,stroke:#c62828
-    classDef ok fill:#e8f5e9,stroke:#2e7d32
-    class ERR1,ERR2,ERR3,ERR4 err
-    class OK ok
-```
-
-Every error path **restores the original composer text** so the user never loses work.
+On failure the intercepted submission stays blocked and the extension attempts to preserve or restore the original composer contents, then displays an error. Restoration is best effort because editor integrations can fail. Cached model bytes avoid repeat network downloads when retained, but GPU initialization still takes time after the offscreen document restarts.
