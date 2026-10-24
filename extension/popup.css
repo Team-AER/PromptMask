@@ -112,6 +112,14 @@ h1 {
   gap: 12px;
   padding: 9px 0;
   border-bottom: 1px solid var(--row-border);
+  flex-wrap: wrap;
+}
+
+.setting-feedback {
+  flex-basis: 100%;
+  color: #a52c3d;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .setting-row:last-child {
@@ -191,5 +199,27 @@ input:focus-visible + .slider {
 }
 
 .status {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #64646b;
+}
+
+.status:empty {
   display: none;
+}
+
+.status.error {
+  color: #a52c3d;
+}
+
+.status.saved {
+  color: #226641;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slider,
+  .slider:before {
+    transition: none;
+  }
 }

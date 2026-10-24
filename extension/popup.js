@@ -45,6 +45,11 @@ const modelSummaryEl = document.getElementById("model-summary");
 const modelDetailEl = document.getElementById("model-detail");
 let saveTimeout;
 let clearStatusTimeout;
+let persistedSettings = null;
+let settingsRevision = 0;
+let saving = false;
+let saveQueued = false;
+const changedRows = new Set();
 
 function setStatus(text, kind = "muted") {
   if (!statusEl) {
@@ -55,19 +60,22 @@ function setStatus(text, kind = "muted") {
   window.clearTimeout(clearStatusTimeout);
   if (kind === "saved") {
     clearStatusTimeout = window.setTimeout(() => {
-      setStatus("Synced", "muted");
+      setStatus("Settings saved on this device", "muted");
     }, 1200);
   }
 }
 
-function setPillState(siteSettings) {
+function setPillState(settings) {
   if (!activePillEl) {
     return;
   }
 
-  const hasEnabledSite = Object.values(siteSettings).some(Boolean);
-  activePillEl.textContent = hasEnabledSite ? "Active" : "Paused";
-  activePillEl.classList.toggle("paused", !hasEnabledSite);
+  const siteCount = Object.values(settings.sites).filter(Boolean).length;
+  const hasCategories = Object.values(settings.categories).some(Boolean);
+  activePillEl.textContent = !siteCount ? "Disabled on all sites"
+    : !hasCategories ? "All categories off"
+    : `Enabled on ${siteCount} ${siteCount === 1 ? "site" : "sites"}`;
+  activePillEl.classList.toggle("paused", !siteCount || !hasCategories);
 }
 
 function renderModelState(rawModelState) {
@@ -144,23 +152,52 @@ function applySettingsToUI(settings) {
     setToggleValue(id, settings.categories[key]);
   }
 
-  setPillState(settings.sites);
+  setPillState(settings);
 }
 
 async function persistSettings() {
+  if (saving) {
+    saveQueued = true;
+    return;
+  }
+  saving = true;
+  const revision = settingsRevision;
+  const settings = readSettingsFromUI();
   try {
-    const settings = readSettingsFromUI();
     await chrome.storage.local.set({ [STORAGE_KEY]: settings });
-    setPillState(settings.sites);
-    const hasAnyCategory = Object.values(settings.categories).some(Boolean);
-    setStatus(hasAnyCategory ? "Saved" : "Saved (all categories off)", "saved");
+    persistedSettings = settings;
+    setPillState(settings);
+    if (revision === settingsRevision) {
+      changedRows.clear();
+      setStatus("Saved", "saved");
+    }
   } catch (err) {
-    setStatus(`Save failed: ${err?.message ?? String(err)}`, "error");
+    if (revision === settingsRevision) {
+      if (persistedSettings) applySettingsToUI(persistedSettings);
+      setStatus("Could not save. Previous settings restored. Try the change again.", "error");
+      for (const row of changedRows) {
+        const feedback = document.createElement("span");
+        feedback.className = "setting-feedback";
+        feedback.setAttribute("role", "alert");
+        feedback.textContent = "Not saved. Previous setting restored; try again.";
+        row.appendChild(feedback);
+      }
+      changedRows.clear();
+    }
+  } finally {
+    saving = false;
+    if (saveQueued) {
+      saveQueued = false;
+      persistSettings();
+    }
   }
 }
 
-function scheduleSave() {
-  setPillState(readSettingsFromUI().sites);
+function scheduleSave(event) {
+  settingsRevision += 1;
+  document.querySelectorAll(".setting-feedback").forEach(el => el.remove());
+  const row = event.target.closest(".setting-row");
+  if (row) changedRows.add(row);
   setStatus("Saving...", "saving");
   window.clearTimeout(saveTimeout);
   saveTimeout = window.setTimeout(() => {
@@ -179,12 +216,15 @@ async function init() {
       await chrome.storage.local.set({ [STORAGE_KEY]: settings });
     }
 
-    setStatus("Synced", "muted");
+    persistedSettings = settings;
+    setStatus("Settings saved on this device", "muted");
   } catch (err) {
     applySettingsToUI(DEFAULT_SETTINGS);
-    setPillState(DEFAULT_SETTINGS.sites);
+    activePillEl.textContent = "Settings unavailable";
+    activePillEl.classList.add("paused");
+    document.querySelectorAll("input[type='checkbox']").forEach(el => el.disabled = true);
     renderModelState(null);
-    setStatus(`Load failed: ${err?.message ?? String(err)}`, "error");
+    setStatus("Could not load settings. Close and reopen PromptMask to try again.", "error");
   }
 
   chrome.storage.onChanged.addListener((changes, areaName) => {
