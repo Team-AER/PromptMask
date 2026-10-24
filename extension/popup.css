@@ -200,13 +200,14 @@ input:focus-visible + .slider {
 
 .status {
   margin: 8px 0 0;
+  min-height: 1.4em;
   font-size: 13px;
   line-height: 1.4;
   color: #64646b;
 }
 
 .status:empty {
-  display: none;
+  visibility: hidden;
 }
 
 .status.error {
