@@ -174,12 +174,12 @@ async function persistSettings() {
   } catch (err) {
     if (revision === settingsRevision) {
       if (persistedSettings) applySettingsToUI(persistedSettings);
-      setStatus("Could not save. Previous settings restored. Try the change again.", "error");
+      setStatus(changedRows.size ? "" : "Could not save. Previous settings restored. Try the change again.", "error");
       for (const row of changedRows) {
         const feedback = document.createElement("span");
         feedback.className = "setting-feedback";
         feedback.setAttribute("role", "alert");
-        feedback.textContent = "Not saved. Previous setting restored; try again.";
+        feedback.textContent = "Not saved. Setting restored. Try again.";
         row.appendChild(feedback);
       }
       changedRows.clear();

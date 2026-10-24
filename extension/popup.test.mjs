@@ -49,9 +49,17 @@ async function fixture({getError = false, write = async () => {}} = {}) {
   await f.change("cat-medical");
   await vm.runInContext("persistSettings()", f.context);
   assert.equal(f.elements.get("cat-medical").checked, true, "failed save restores confirmed setting");
-  assert.match(f.elements.get("status").textContent, /Could not save/);
+  assert.equal(f.elements.get("status").textContent, "", "row recovery is not repeated in the header");
   assert.equal(f.elements.get("active-pill").textContent, "Enabled on 5 sites");
   assert.equal(f.feedback.length, 1, "error stays beside the changed setting");
+  assert.equal(f.feedback[0].textContent, "Not saved. Setting restored. Try again.");
+}
+
+{
+  const f = await fixture({write: async () => { throw new Error("failed"); }});
+  await vm.runInContext("persistSettings()", f.context);
+  assert.match(f.elements.get("status").textContent, /Could not save/, "failures without a changed row retain global recovery");
+  assert.equal(f.feedback.length, 0);
 }
 
 {
