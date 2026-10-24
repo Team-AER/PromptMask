@@ -43,6 +43,23 @@ const statusEl = document.getElementById("status");
 const activePillEl = document.getElementById("active-pill");
 const modelSummaryEl = document.getElementById("model-summary");
 const modelDetailEl = document.getElementById("model-detail");
+const motionPreference = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+function settlePopupMotion() {
+  document.getElementById("popup")?.classList.remove("popup-arrive");
+  statusEl?.classList.remove?.("is-celebrating");
+}
+const preferenceChanged = event => { if (event.matches) settlePopupMotion(); };
+if (motionPreference?.addEventListener) motionPreference.addEventListener("change", preferenceChanged);
+else motionPreference?.addListener?.(preferenceChanged);
+window.addEventListener?.("pagehide", () => {
+  settlePopupMotion();
+  if (motionPreference?.removeEventListener) motionPreference.removeEventListener("change", preferenceChanged);
+  else motionPreference?.removeListener?.(preferenceChanged);
+});
+statusEl?.addEventListener("animationend", event => {
+  if (event.animationName === "saved-seal") statusEl.classList.remove("is-celebrating");
+});
+
 let saveTimeout;
 let clearStatusTimeout;
 let persistedSettings = null;
@@ -57,6 +74,7 @@ function setStatus(text, kind = "muted") {
   }
   statusEl.textContent = text;
   statusEl.className = `status ${kind}`;
+  if (kind === "saved" && !motionPreference?.matches) statusEl.classList.add("is-celebrating");
   window.clearTimeout(clearStatusTimeout);
   if (kind === "saved") {
     clearStatusTimeout = window.setTimeout(() => {
@@ -244,3 +262,4 @@ async function init() {
 }
 
 init();
+if (!motionPreference?.matches) document.getElementById("popup")?.classList.add("popup-arrive");
