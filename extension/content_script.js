@@ -300,6 +300,25 @@ function ensureSpinnerStyles() {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
     }
+    @media (prefers-reduced-motion: reduce) {
+      #${SPINNER_ID} {
+        animation: none !important;
+        width: auto !important;
+        height: auto !important;
+        border: 0 !important;
+        border-radius: 8px !important;
+        padding: 8px 12px;
+        background: #1b3a57 !important;
+        color: #ffffff;
+      }
+      #${SPINNER_ID}::after {
+        content: "Redacting…";
+        font: 13px system-ui, sans-serif;
+      }
+      #gemma-redaction-toast, #gemma-download-banner {
+        transition: none !important;
+      }
+    }
   `;
   document.head.appendChild(style);
 }
@@ -911,6 +930,7 @@ function logComposerWriteFailure(composer, value) {
 }
 
 function showToast(message, isError = false) {
+  ensureSpinnerStyles();
   let toast = document.getElementById("gemma-redaction-toast");
   if (!toast) {
     toast = document.createElement("div");
@@ -943,6 +963,7 @@ function showToast(message, isError = false) {
 const DOWNLOAD_BANNER_ID = "gemma-download-banner";
 
 function showDownloadProgress(label) {
+  ensureSpinnerStyles();
   let banner = document.getElementById(DOWNLOAD_BANNER_ID);
   if (!banner) {
     banner = document.createElement("div");
