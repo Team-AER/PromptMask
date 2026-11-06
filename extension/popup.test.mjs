@@ -2,9 +2,10 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
 import { MODEL_STATE_KEY, describeModelState, normalizeModelState } from "./model_cache.mjs";
+import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY, mergeSettings } from "./settings.mjs";
 
 const source = fs.readFileSync(new URL("./popup.js", import.meta.url), "utf8")
-  .replace(/^import[^\n]+\n/, "");
+  .replace(/^import[^\n]+\n/gm, "");
 const siteNames = ["chatgpt", "gemini", "claude", "perplexity", "grok"];
 const categoryNames = ["identityContact", "governmentLegal", "financialPayment", "medical", "credentialsSecrets", "networkDevice", "businessCase"];
 const defaults = () => ({sites: Object.fromEntries(siteNames.map(k => [k, true])), categories: Object.fromEntries(categoryNames.map(k => [k, true]))});
@@ -25,6 +26,7 @@ async function fixture({getError = false, write = async () => {}} = {}) {
   const toggles = [...elements].filter(([id]) => /^(site|cat)-/.test(id)).map(([,el]) => el);
   const writes = [];
   const context = vm.createContext({MODEL_STATE_KEY, describeModelState, normalizeModelState,
+    DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY, mergeSettings,
     window: {setTimeout, clearTimeout},
     document: {getElementById: id => elements.get(id), createElement: create,
       querySelectorAll: selector => selector === ".setting-feedback" ? [...feedback] : toggles},

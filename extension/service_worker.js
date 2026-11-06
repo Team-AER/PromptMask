@@ -1,5 +1,6 @@
+import { MODEL_STATE_KEY } from "./model_cache.mjs";
+
 const pendingRequests = new Map();
-const MODEL_STATE_KEY = "promptmask_model_state_v1";
 
 // Track tab IDs that are waiting for model progress updates.
 const progressSubscribers = new Set();

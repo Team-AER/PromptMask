@@ -1,6 +1,5 @@
 import { MODEL_STATE_KEY, describeModelState, normalizeModelState } from "./model_cache.mjs";
-
-const STORAGE_KEY = "promptmask_settings_v1";
+import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY, mergeSettings } from "./settings.mjs";
 
 const SITE_TOGGLE_IDS = {
   chatgpt: "site-chatgpt",
@@ -18,25 +17,6 @@ const CATEGORY_TOGGLE_IDS = {
   credentialsSecrets: "cat-credentialsSecrets",
   networkDevice: "cat-networkDevice",
   businessCase: "cat-businessCase"
-};
-
-const DEFAULT_SETTINGS = {
-  sites: {
-    chatgpt: true,
-    gemini: true,
-    claude: true,
-    perplexity: true,
-    grok: true
-  },
-  categories: {
-    identityContact: true,
-    governmentLegal: true,
-    financialPayment: true,
-    medical: true,
-    credentialsSecrets: true,
-    networkDevice: true,
-    businessCase: true
-  }
 };
 
 const statusEl = document.getElementById("status");
@@ -106,32 +86,6 @@ function renderModelState(rawModelState) {
   modelDetailEl.textContent = detail;
 }
 
-function mergeSettings(raw) {
-  const source = raw && typeof raw === "object" ? raw : {};
-  const merged = {
-    sites: { ...DEFAULT_SETTINGS.sites },
-    categories: { ...DEFAULT_SETTINGS.categories }
-  };
-
-  if (source.sites && typeof source.sites === "object") {
-    for (const key of Object.keys(merged.sites)) {
-      if (typeof source.sites[key] === "boolean") {
-        merged.sites[key] = source.sites[key];
-      }
-    }
-  }
-
-  if (source.categories && typeof source.categories === "object") {
-    for (const key of Object.keys(merged.categories)) {
-      if (typeof source.categories[key] === "boolean") {
-        merged.categories[key] = source.categories[key];
-      }
-    }
-  }
-
-  return merged;
-}
-
 function getToggleValue(id) {
   const el = document.getElementById(id);
   return Boolean(el?.checked);
@@ -182,7 +136,7 @@ async function persistSettings() {
   const revision = settingsRevision;
   const settings = readSettingsFromUI();
   try {
-    await chrome.storage.local.set({ [STORAGE_KEY]: settings });
+    await chrome.storage.local.set({ [SETTINGS_STORAGE_KEY]: settings });
     persistedSettings = settings;
     setPillState(settings);
     if (revision === settingsRevision) {
@@ -225,13 +179,13 @@ function scheduleSave(event) {
 
 async function init() {
   try {
-    const data = await chrome.storage.local.get([STORAGE_KEY, MODEL_STATE_KEY]);
-    const settings = mergeSettings(data[STORAGE_KEY]);
+    const data = await chrome.storage.local.get([SETTINGS_STORAGE_KEY, MODEL_STATE_KEY]);
+    const settings = mergeSettings(data[SETTINGS_STORAGE_KEY]);
     applySettingsToUI(settings);
     renderModelState(normalizeModelState(data[MODEL_STATE_KEY]));
 
-    if (!data[STORAGE_KEY]) {
-      await chrome.storage.local.set({ [STORAGE_KEY]: settings });
+    if (!data[SETTINGS_STORAGE_KEY]) {
+      await chrome.storage.local.set({ [SETTINGS_STORAGE_KEY]: settings });
     }
 
     persistedSettings = settings;
