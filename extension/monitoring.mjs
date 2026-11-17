@@ -12,8 +12,13 @@ export function configureMonitoring() {
 
 async function applyConfiguration() {
   let config;
+  let manifest;
   try {
-    config = (await chrome.storage.local.get(key))[key];
+    config = chrome.storage?.local
+      ? (await chrome.storage.local.get(key))[key]
+      : (await chrome.runtime.sendMessage({ type: "MONITORING_GET_CONFIG" }))?.config;
+    manifest = chrome.runtime.getManifest?.()
+      || await (await fetch(chrome.runtime.getURL("manifest.json"))).json();
     if (config === undefined) {
       const response = await fetch(chrome.runtime.getURL("monitoring-config.json"));
       if (response.ok) config = await response.json();
@@ -37,7 +42,7 @@ async function applyConfiguration() {
     dsn: config.dsn,
     tunnel: config.tunnel || undefined,
     environment: config.environment || "production",
-    release: `promptmask@${chrome.runtime.getManifest().version}`,
+    release: `promptmask@${manifest.version}`,
     transport: makeFetchTransport,
     stackParser: defaultStackParser,
     integrations: [],
@@ -67,7 +72,21 @@ export function reportError(error) {
 
 globalThis.addEventListener?.("error", event => reportError(event.error));
 globalThis.addEventListener?.("unhandledrejection", event => reportError(event.reason));
-chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === "local" && changes[key]) void configureMonitoring();
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message?.type === "MONITORING_GET_CONFIG" && chrome.storage?.local && typeof document === "undefined") {
+    chrome.storage.local.get(key).then(
+      stored => sendResponse({ config: stored[key] }),
+      () => sendResponse({ config: { enabled: false } })
+    );
+    return true;
+  }
+  if (message?.type === "MONITORING_CONFIG_CHANGED" && !chrome.storage?.local) void configureMonitoring();
+});
+chrome.storage?.onChanged.addListener((changes, area) => {
+  if (area !== "local" || !changes[key]) return;
+  void configureMonitoring();
+  if (typeof document === "undefined") {
+    void chrome.runtime.sendMessage({ type: "MONITORING_CONFIG_CHANGED" }).catch(() => {});
+  }
 });
 void configureMonitoring();
