@@ -1,3 +1,4 @@
+import "./monitoring.mjs";
 const pendingRequests = new Map();
 const MODEL_STATE_KEY = "promptmask_model_state_v1";
 

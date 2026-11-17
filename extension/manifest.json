@@ -3,7 +3,11 @@
   "name": "PromptMask",
   "version": "0.2.1",
   "description": "Redact sensitive information from your AI prompts before you hit send. 100% private, on-device.",
-  "permissions": ["offscreen", "storage", "unlimitedStorage"],
+  "permissions": [
+    "offscreen",
+    "storage",
+    "unlimitedStorage"
+  ],
   "host_permissions": [
     "https://huggingface.co/*",
     "https://*.huggingface.co/*",
@@ -52,13 +56,15 @@
         "https://perplexity.ai/*",
         "https://www.perplexity.ai/*"
       ],
-      "js": ["content_script.js"],
+      "js": [
+        "content_script.js"
+      ],
       "run_at": "document_start",
       "all_frames": true,
       "match_about_blank": true
     }
   ],
   "content_security_policy": {
-    "extension_pages": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' https://huggingface.co https://*.huggingface.co https://*.hf.co https://*.xethub.hf.co;"
+    "extension_pages": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' https://glitchtip.brainfc.uk https://huggingface.co https://*.huggingface.co https://*.hf.co https://*.xethub.hf.co;"
   }
 }

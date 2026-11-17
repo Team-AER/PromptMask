@@ -1,3 +1,4 @@
+import "./monitoring.mjs";
 import { MODEL_STATE_KEY, describeModelState, normalizeModelState } from "./model_cache.mjs";
 
 const STORAGE_KEY = "promptmask_settings_v1";
