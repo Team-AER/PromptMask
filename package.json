@@ -1,0 +1,12 @@
+{
+  "name": "promptmask-build",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:monitoring": "esbuild extension/monitoring-vendor.mjs --bundle --minify --format=esm --outfile=extension/lib/monitoring-sdk.mjs"
+  },
+  "devDependencies": {
+    "@sentry/browser": "10.78.0",
+    "esbuild": "0.28.2"
+  }
+}
