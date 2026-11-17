@@ -3,16 +3,32 @@ import { BrowserClient, Scope, defaultStackParser, makeFetchTransport } from "./
 const key = "promptmask_monitoring_v1";
 let client;
 let scope;
+let configuration = Promise.resolve(false);
 
-export async function configureMonitoring() {
-  const config = (await chrome.storage.local.get(key))[key];
+export function configureMonitoring() {
+  configuration = configuration.then(applyConfiguration, applyConfiguration);
+  return configuration;
+}
+
+async function applyConfiguration() {
+  let config;
+  try {
+    config = (await chrome.storage.local.get(key))[key];
+  } catch {
+    config = undefined;
+  }
   const previous = client;
   client = undefined;
   scope = undefined;
   if (previous) await previous.close(2000);
   if (!config?.enabled || !config.dsn) return false;
-  const dsn = new URL(config.dsn);
-  if (dsn.origin !== "https://glitchtip.brainfc.uk") return false;
+  let dsn;
+  try {
+    dsn = new URL(config.dsn);
+  } catch {
+    return false;
+  }
+  if (dsn.origin !== "https://glitchtip.brainfc.uk" || !/^[a-f0-9]+$/i.test(dsn.username) || !/^\/\d+$/.test(dsn.pathname)) return false;
   client = new BrowserClient({
     dsn: config.dsn,
     tunnel: config.tunnel || undefined,
