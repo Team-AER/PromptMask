@@ -8,9 +8,10 @@ globalThis.chrome = {
     local: { async get(key) { return { [key]: config }; } },
     onChanged: { addListener(listener) { storageListener = listener; } }
   },
-  runtime: { getManifest: () => ({ version: "1.2.3" }) }
+  runtime: { getURL: path => `chrome-extension://test/${path}`, getManifest: () => ({ version: "1.2.3" }) }
 };
 globalThis.fetch = async (url, options) => {
+  if (String(url).endsWith("monitoring-config.json")) return new Response('{"enabled":false}');
   envelopes.push({ url: String(url), body: options.body });
   return new Response("{}", { status: 200 });
 };

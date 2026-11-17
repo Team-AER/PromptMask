@@ -4,7 +4,7 @@ import vm from "node:vm";
 import { MODEL_STATE_KEY, describeModelState, normalizeModelState } from "./model_cache.mjs";
 
 const source = fs.readFileSync(new URL("./popup.js", import.meta.url), "utf8")
-  .replace(/^import[^\n]+\n/, "");
+  .replace(/^import[^\n]+\n/gm, "");
 const siteNames = ["chatgpt", "gemini", "claude", "perplexity", "grok"];
 const categoryNames = ["identityContact", "governmentLegal", "financialPayment", "medical", "credentialsSecrets", "networkDevice", "businessCase"];
 const defaults = () => ({sites: Object.fromEntries(siteNames.map(k => [k, true])), categories: Object.fromEntries(categoryNames.map(k => [k, true]))});

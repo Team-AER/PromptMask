@@ -14,6 +14,10 @@ async function applyConfiguration() {
   let config;
   try {
     config = (await chrome.storage.local.get(key))[key];
+    if (config === undefined) {
+      const response = await fetch(chrome.runtime.getURL("monitoring-config.json"));
+      if (response.ok) config = await response.json();
+    }
   } catch {
     config = undefined;
   }
