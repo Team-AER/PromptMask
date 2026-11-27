@@ -1,3 +1,5 @@
+import { CATEGORY_KEYS, CATEGORY_TO_PLACEHOLDER_KEYS } from "./settings.mjs";
+
 const PROMPT_PREAMBLE = `You are a PII redaction system. Replace any PII in the input with consistently numbered placeholders and return ONLY the redacted text. Keep all non-PII text exactly as-is. Do not add or remove any other words. Do not add headings, labels, explanations, quotes, or tags.
 
 CRITICAL: Only process the exact text provided in Input. Do NOT invent, add, or assume any information that is not present in the input. If the input is short or contains little PII, return it with only the PII that actually appears replaced.
@@ -167,18 +169,10 @@ const PROMPT_EXAMPLES = [
   }
 ];
 
-const ALL_CATEGORY_KEYS = Object.keys(CATEGORY_PLACEHOLDER_LINES);
+const ALL_CATEGORY_KEYS = CATEGORY_KEYS;
 const PLACEHOLDER_KEY_PATTERN = /\[([A-Z_]+)\s+\d+\]/g;
 
-export const CATEGORY_TO_PLACEHOLDER_KEYS = {
-  identityContact: ["NAME", "PHONE", "EMAIL", "USERNAME", "ADDRESS", "DATE_OF_BIRTH"],
-  governmentLegal: ["SSN", "PAN", "GST", "DRIVER_LICENSE"],
-  financialPayment: ["BANK_ACCOUNT", "CREDIT_CARD", "CARD_EXPIRY", "CARD_CVV", "PAYPAL"],
-  medical: ["INSURANCE_ID", "MRN"],
-  credentialsSecrets: ["API_KEY", "ACCESS_TOKEN"],
-  networkDevice: ["IP_ADDRESS", "DEVICE_ID"],
-  businessCase: ["ORDER_ID", "INVOICE_ID", "CASE_ID"]
-};
+export { CATEGORY_TO_PLACEHOLDER_KEYS };
 
 function buildRedactionPrompt(enabledCategoryKeys) {
   const placeholderLines = enabledCategoryKeys

@@ -103,25 +103,6 @@ const handledSendEvents = new WeakSet();
 
 const SETTINGS_STORAGE_KEY = "promptmask_settings_v1";
 const MODEL_STATE_KEY = "promptmask_model_state_v1";
-const DEFAULT_SETTINGS = {
-  sites: {
-    chatgpt: true,
-    gemini: true,
-    claude: true,
-    perplexity: true,
-    grok: true
-  },
-  categories: {
-    identityContact: true,
-    governmentLegal: true,
-    financialPayment: true,
-    medical: true,
-    credentialsSecrets: true,
-    networkDevice: true,
-    businessCase: true
-  }
-};
-
 const CATEGORY_TO_PLACEHOLDERS = {
   identityContact: ["NAME", "PHONE", "EMAIL", "USERNAME", "ADDRESS", "DATE_OF_BIRTH"],
   governmentLegal: ["SSN", "PAN", "GST", "DRIVER_LICENSE"],
@@ -130,6 +111,16 @@ const CATEGORY_TO_PLACEHOLDERS = {
   credentialsSecrets: ["API_KEY", "ACCESS_TOKEN"],
   networkDevice: ["IP_ADDRESS", "DEVICE_ID"],
   businessCase: ["ORDER_ID", "INVOICE_ID", "CASE_ID"]
+};
+const SITE_KEYS = ["chatgpt", "gemini", "claude", "perplexity", "grok"];
+
+function createEnabledMap(keys) {
+  return Object.fromEntries(keys.map((key) => [key, true]));
+}
+
+const DEFAULT_SETTINGS = {
+  sites: createEnabledMap(SITE_KEYS),
+  categories: createEnabledMap(Object.keys(CATEGORY_TO_PLACEHOLDERS))
 };
 
 let settings = {
@@ -576,27 +567,23 @@ function sendMessage(payload) {
 
 function mergeSettings(raw) {
   const source = raw && typeof raw === "object" ? raw : {};
-  const merged = {
-    sites: { ...DEFAULT_SETTINGS.sites },
-    categories: { ...DEFAULT_SETTINGS.categories }
+  return {
+    sites: mergeBooleanSection(DEFAULT_SETTINGS.sites, source.sites),
+    categories: mergeBooleanSection(DEFAULT_SETTINGS.categories, source.categories)
   };
+}
 
-  if (source.sites && typeof source.sites === "object") {
-    for (const key of Object.keys(merged.sites)) {
-      if (typeof source.sites[key] === "boolean") {
-        merged.sites[key] = source.sites[key];
-      }
-    }
+function mergeBooleanSection(defaults, rawSection) {
+  const merged = { ...defaults };
+  if (!rawSection || typeof rawSection !== "object") {
+    return merged;
   }
 
-  if (source.categories && typeof source.categories === "object") {
-    for (const key of Object.keys(merged.categories)) {
-      if (typeof source.categories[key] === "boolean") {
-        merged.categories[key] = source.categories[key];
-      }
+  for (const key of Object.keys(merged)) {
+    if (typeof rawSection[key] === "boolean") {
+      merged[key] = rawSection[key];
     }
   }
-
   return merged;
 }
 
