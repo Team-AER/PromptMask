@@ -1,3 +1,4 @@
+import "./monitoring.mjs";
 import { FilesetResolver, LlmInference } from "./lib/genai_bundle.mjs";
 import {
   buildCorrectionPrompt,

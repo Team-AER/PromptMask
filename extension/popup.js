@@ -1,3 +1,4 @@
+import "./monitoring.mjs";
 import { MODEL_STATE_KEY, describeModelState, normalizeModelState } from "./model_cache.mjs";
 import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY, mergeSettings } from "./settings.mjs";
 

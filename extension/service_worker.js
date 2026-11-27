@@ -1,3 +1,4 @@
+import "./monitoring.mjs";
 import { MODEL_STATE_KEY } from "./model_cache.mjs";
 
 const pendingRequests = new Map();
